@@ -42,7 +42,7 @@
       <!-- Menu -->
       <div id="menu">
         <h1>🐔 Game Bắn Gà Mini 🐔</h1>
-        <p>Nhà phát triển: <b>NhatNgo2K2</b></p>
+        <p>Nhà phát triển: <b>NhatNgo2K2 - Nhóc nè</b></p>
         <button onclick="startGame()">Chơi</button>
         <button onclick="showGuide()">Hướng Dẫn</button>
         <button onclick="showContact()">Liên Hệ</button>
@@ -160,12 +160,13 @@
           }
         }
 
-        canvas.addEventListener("mousemove", e=>{
-          if(!isMobile && gameRunning){
-            const rect=canvas.getBoundingClientRect();
-            player.x = Math.max(0, Math.min(e.clientX - rect.left - player.w/2, canvas.width - player.w));
-          }
-        });
+              canvas.addEventListener("touchmove", e => {
+          e.preventDefault(); // tránh cuộn màn hình
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        player.x = Math.max(0, Math.min(touch.clientX - rect.left - player.w/2, canvas.width - player.w));
+        }, { passive: false });
+
 
         function createTouchControl() {
         const touchControl = document.createElement("div");
