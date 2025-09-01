@@ -15,7 +15,7 @@
           display: block;
           border: 2px solid white;
         }
-        #menu, #guide, #gameOver, #contact {
+        #menu, #guide, #gameOver, #contact #menu {
           position: absolute;
           top: 0; left: 0; right: 0; bottom: 0;
           background: url('static/nen.png') no-repeat center center;
@@ -42,7 +42,7 @@
       <!-- Menu -->
       <div id="menu">
         <h1>🐔 Game Bắn Gà Mini 🐔</h1>
-        <p>Nhà phát triển: <b>NhatNgo2K2 - Nhóc nè</b></p>
+        <p>Nhà phát triển: <b>NhatNgo2K2</b></p>
         <button onclick="startGame()">Chơi</button>
         <button onclick="showGuide()">Hướng Dẫn</button>
         <button onclick="showContact()">Liên Hệ</button>
@@ -160,45 +160,64 @@
           }
         }
 
-              canvas.addEventListener("touchmove", e => {
-          e.preventDefault(); // tránh cuộn màn hình
-        const touch = e.touches[0];
-        const rect = canvas.getBoundingClientRect();
-        player.x = Math.max(0, Math.min(touch.clientX - rect.left - player.w/2, canvas.width - player.w));
-        }, { passive: false });
+        canvas.addEventListener("mousemove", e=>{
+          if(!isMobile && gameRunning){
+            const rect=canvas.getBoundingClientRect();
+            player.x = Math.max(0, Math.min(e.clientX - rect.left - player.w/2, canvas.width - player.w));
+          }
+        });
 
+        function createTouchControl(){
+          if(touchControl) return; // tránh tạo nhiều lần
 
-        function createTouchControl() {
-        const touchControl = document.createElement("div");
-        touchControl.style.position = "fixed";
-        touchControl.style.right = "20px";
-        touchControl.style.bottom = "50px";
-        touchControl.style.width = "120px";  // tăng kích thước
-        touchControl.style.height = "120px"; // tăng kích thước
-        touchControl.style.borderRadius = "50%";
-        touchControl.style.background = "rgba(255,255,255,0.3)";
-        touchControl.style.zIndex = "100";
-        touchControl.style.display = "flex";
-        touchControl.style.justifyContent = "center";
-        touchControl.style.alignItems = "center";
+          touchControl = document.createElement("div");
+          touchControl.style.position = "fixed";
+          touchControl.style.right = "20px";
+          touchControl.style.bottom = "50px";
+          touchControl.style.width = "120px";  // tăng kích thước
+          touchControl.style.height = "120px";
+          touchControl.style.borderRadius = "50%";
+          touchControl.style.background = "rgba(255,255,255,0.2)"; // mờ hơn
+          touchControl.style.zIndex = "100";
+          touchControl.style.display = "flex";
+          touchControl.style.justifyContent = "center";
+          touchControl.style.alignItems = "center";
+          touchControl.style.backdropFilter = "blur(4px)"; // tạo hiệu ứng mờ nền
 
-          // tạo chấm tròn ở giữa
+          // Chấm trung tâm
           const centerDot = document.createElement("div");
-          centerDot.style.width = "20px";
-          centerDot.style.height = "20px";
+          centerDot.style.width = "24px";
+          centerDot.style.height = "24px";
           centerDot.style.borderRadius = "50%";
-          centerDot.style.background = "rgba(255,255,255,0.8)";
+          centerDot.style.background = "rgba(255,255,255,0.9)";
+          centerDot.style.transition = "transform 0.05s"; // hiệu ứng chuyển động
           touchControl.appendChild(centerDot);
 
           document.body.appendChild(touchControl);
 
-          touchControl.addEventListener("touchmove", e => {
+          touchControl.addEventListener("touchmove", e=>{
+            e.preventDefault();
             const touch = e.touches[0];
             const rect = canvas.getBoundingClientRect();
-            player.x = Math.max(0, Math.min(touch.clientX - rect.left - player.w/2, canvas.width - player.w));
+            const newX = Math.max(0, Math.min(touch.clientX - rect.left - player.w/2, canvas.width - player.w));
+            player.x = newX;
+
+            // Dấu chấm trung tâm di chuyển theo ngón tay
+            const tcRect = touchControl.getBoundingClientRect();
+            let offsetX = touch.clientX - (tcRect.left + tcRect.width/2);
+            let offsetY = touch.clientY - (tcRect.top + tcRect.height/2);
+            // giới hạn chấm trong vùng touch
+            offsetX = Math.max(-tcRect.width/2 + 12, Math.min(offsetX, tcRect.width/2 - 12));
+            offsetY = Math.max(-tcRect.height/2 + 12, Math.min(offsetY, tcRect.height/2 - 12));
+            centerDot.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+          }, { passive: false });
+
+          // Reset chấm khi thả ngón tay
+          touchControl.addEventListener("touchend", e=>{
+            centerDot.style.transform = "translate(0,0)";
           });
         }
-          // Spawn
+        // Spawn
         function spawnEnemies(){
           enemies=[];
           let numEnemies = level===1?3:level===2?5:7;
@@ -328,4 +347,4 @@
         window.addEventListener("resize", resizeCanvas);
       </script>
     </body>
-    </html>
+    </html> tôi muốn thêm nền trang home nen.png 
