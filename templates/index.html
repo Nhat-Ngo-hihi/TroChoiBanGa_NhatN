@@ -54,18 +54,25 @@
           border-radius: 8px;
           border: none;
         }
-        /* Ngôi sao Top 1 nhấp nháy */
-        @keyframes glow {
-          0% { box-shadow: 0 0 10px gold; transform: translate(-50%, -50%) scale(1); }
-          50% { box-shadow: 0 0 25px gold; transform: translate(-50%, -50%) scale(1.1); }
-          100% { box-shadow: 0 0 10px gold; transform: translate(-50%, -50%) scale(1); }
-        }
-
-        /* Hover Top 2-3 */
-        .star-hover:hover {
-          transform: scale(1.1);
-          transition: transform 0.2s;
-        }
+              /* Top 3 Stars */
+              #leaderboard {
+        position: fixed;
+        top:0; left:0; right:0; bottom:0;
+        background: url('static/nen4.png') no-repeat center center;
+        background-size: cover;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        z-index: 1000;
+      }
+      #scoreList {
+        list-style: decimal inside;
+        width: 50%;
+        max-width: 400px;
+        text-align: center;
+      }
       </style>
     </head>
     <body>
@@ -119,38 +126,11 @@
         <button onclick="backMenu()">Về Menu</button>
       </div>
       <!-- BXH -->
-      <div id="leaderboard" style="display:none;">
-      <h2>🏆 Bảng Xếp Hạng</h2>
-      <!-- Top 3 -->
-      <div id="top3" style="display:flex; justify-content:center; align-items:flex-end; gap:30px; height:250px; margin-bottom:20px;">
-        <!-- Top 2 -->
-        <div class="star-hover" style="display:flex; flex-direction:column; align-items:center; justify-content:flex-end; width:90px; height:150px;">
-          <div style="width:90px; height:90px; background:silver; clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); display:flex; flex-direction:column; align-items:center; justify-content:center;">
-            <span id="name2" style="font-weight:bold;">Player2</span>
-            <span id="score2">4500</span>
-          </div>
-        </div>
-        <!-- Top 1 -->
-        <div style="display:flex; flex-direction:column; align-items:center; justify-content:flex-end; width:120px; height:200px;">
-          <div style="width:120px; height:120px; background:gold; clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); display:flex; flex-direction:column; align-items:center; justify-content:center; animation:glow 1.5s infinite;">
-            <span id="name1" style="font-weight:bold;">Player1</span>
-            <span id="score1">5000</span>
-          </div>
-        </div>
-        <!-- Top 3 -->
-        <div class="star-hover" style="display:flex; flex-direction:column; align-items:center; justify-content:flex-end; width:70px; height:130px;">
-          <div style="width:70px; height:70px; background:#cd7f32; clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); display:flex; flex-direction:column; align-items:center; justify-content:center;">
-            <span id="name3" style="font-weight:bold;">Player3</span>
-            <span id="score3">4000</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Danh sách còn lại -->
-      <ol id="scoreList" style="max-width:400px; margin:auto; padding-left:20px; font-size:16px; line-height:1.5;"></ol>
-      <button onclick="backMenu()">Quay lại</button>
-    </div>
-
+    <div id="leaderboard" style="display:none;">
+    <h2>🏆 Bảng Xếp Hạng Top 10</h2>
+    <ol id="scoreList" style="font-size:20px; text-align:center; margin-top:20px;"></ol>
+    <button onclick="backMenu()" style="margin-top:20px;">Quay lại</button>
+  </div>
       <canvas id="gameCanvas"></canvas>
       <button id="homeBtn" onclick="backMenu()" style="display:none;">🏠 Home</button>
 
@@ -165,45 +145,37 @@
         const finalScoreEl = document.getElementById("finalScore");
         const winDiv = document.getElementById("win");
         const finalScoreWinEl = document.getElementById("finalScoreWin");
-
-            // Hàm hiện bảng xếp hạng
+        
             function showLeaderboard(){
-          menu.style.display="none";
-          guide.style.display="none";
-          contact.style.display="none";
-          gameOverDiv.style.display="none";
-          document.getElementById("leaderboard").style.display="flex";
+        menu.style.display = "none";
+        guide.style.display = "none";
+        contact.style.display = "none";
+        gameOverDiv.style.display = "none";
+        document.getElementById("leaderboard").style.display = "flex";
 
-          let scores = JSON.parse(localStorage.getItem("leaderboard")||"[]");
-          // Sắp xếp giảm dần theo score, nếu bằng score thì ưu tiên level cao hơn
-          scores.sort((a,b) => b.score - a.score || b.level - a.level);
+        // Lấy dữ liệu từ localStorage
+        let scores = JSON.parse(localStorage.getItem("leaderboard") || "[]");
 
-          // === Cập nhật Top 3 riêng với các id ===
-          const top1 = scores[0];
-          const top2 = scores[1];
-          const top3 = scores[2];
+        // Nếu chưa có điểm nào, thêm mặc định
+        if(scores.length === 0){
+          scores = [
+            {name: "Nhật Ngô", score: 10000, level: 3},
+            {name: "Nhóc nè", score: 9999, level: 3},
+            {name: "Heheboy", score: 5000, level: 2}
+          ];
+          localStorage.setItem("leaderboard", JSON.stringify(scores));
+        }
 
-          if(top1){ 
-              document.getElementById("name1").textContent = top1.name; 
-              document.getElementById("score1").textContent = top1.score; 
-          }
-          if(top2){ 
-              document.getElementById("name2").textContent = top2.name; 
-              document.getElementById("score2").textContent = top2.score; 
-          }
-          if(top3){ 
-              document.getElementById("name3").textContent = top3.name; 
-              document.getElementById("score3").textContent = top3.score; 
-          }
+        // Sắp xếp giảm dần theo score, nếu bằng score thì ưu tiên level cao hơn
+        scores.sort((a,b) => b.score - a.score || b.level - a.level);
 
-          // Nếu muốn hiển thị các thứ hạng còn lại trong <ol>
-          const listEl = document.getElementById("scoreList");
-          listEl.innerHTML = "";
-          scores.slice(0,10).forEach(s=>{
-              const li = document.createElement("li");
-              li.textContent = `${s.name} - Điểm: ${s.score} - Màn: ${s.level}`;
-              listEl.appendChild(li);
-          });
+        const listEl = document.getElementById("scoreList");
+        listEl.innerHTML = "";
+        scores.slice(0,10).forEach((s,i)=>{
+          const li = document.createElement("li");
+          li.textContent = `${s.name} - Điểm: ${s.score} - Màn: ${s.level}`;
+          listEl.appendChild(li);
+        });
       }
 
 
