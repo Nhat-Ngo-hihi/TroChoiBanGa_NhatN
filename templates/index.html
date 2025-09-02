@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+ <!DOCTYPE html>
     <html lang="vi">
     <head>
       <meta charset="UTF-8">
@@ -59,10 +59,13 @@
       <!-- Menu -->
       <div id="menu">
         <h1>🐔 Game Bắn Gà Mini 🐔</h1>
+        <p>Nhập tên nhân vật:</p>
+        <input type="text" id="playerName" placeholder="Tên của bạn">
         <p>Nhà phát triển: <b>NhatNgo - nhóc nè</b></p>
         <button onclick="startGame()">Chơi</button>
         <button onclick="showGuide()">Hướng Dẫn</button>
         <button onclick="showContact()">Liên Hệ</button>
+        <button onclick="showLeaderboard()">Bảng Xếp Hạng</button>
       </div>
 
       <!-- Hướng dẫn -->
@@ -72,11 +75,11 @@
       <p><b>Màu <span style="color:rgb(0, 0, 0);">Cam</span>:</b> Đạn của bạn</p>
       <p><b>Màu <span style="color:white;">Trắng</span>:</b> Đạn của địch</p>
       <p><b>Item:</b></p>
-      <p><b style="color:rgb(4, 4, 63);">Xanh:</b> Speed (tăng tốc độ)</p>
+      <p><b style="color:rgb(41, 41, 179);">Xanh:</b> Speed (tăng tốc độ)</p>
       <p><b style="color:yellow;">Vàng:</b> Dame (tăng sát thương)</p>
       <p><b style="color:green;">Xanh lá:</b> Đạn (thêm 1 đường đạn)</p>
-      <p><b style="color:pink;">Hồng:</b> Hồi 1 máu</p>
-      <p><b style="color:red;">Đỏ:</b> FireRate (tăng tốc độ bắn)</p>
+      <p><b style="color:rgb(227, 41, 72);">Đỏ:</b> Hồi 1 máu</p>
+
       <button onclick="backMenu()">Quay lại</button>
     </div>
       <!-- Liên hệ -->
@@ -102,9 +105,12 @@
         <button onclick="restartGame()">Chơi lại</button>
         <button onclick="backMenu()">Về Menu</button>
       </div>
-
-      <canvas id="gameCanvas"></canvas>
-      <button id="homeBtn" onclick="backMenu()" style="display:none;">🏠 Home</button>
+      <!-- BXH -->
+      <div id="leaderboard" style="display:none;">
+      <h2>🏆 Bảng Xếp Hạng</h2>
+      <ol id="scoreList"></ol>
+      <button onclick="backMenu()">Quay lại</button>
+    </div>
 
       <canvas id="gameCanvas"></canvas>
       <button id="homeBtn" onclick="backMenu()" style="display:none;">🏠 Home</button>
@@ -121,6 +127,29 @@
         const winDiv = document.getElementById("win");
         const finalScoreWinEl = document.getElementById("finalScoreWin");
 
+            // Hàm hiện bảng xếp hạng
+            function showLeaderboard(){
+        menu.style.display="none";
+        guide.style.display="none";
+        contact.style.display="none";
+        gameOverDiv.style.display="none";
+        winDiv.style.display="none";
+        document.getElementById("leaderboard").style.display="flex";
+
+        let scores = JSON.parse(localStorage.getItem("leaderboard")||"[]");
+
+        // Sắp xếp giảm dần theo score, nếu bằng score thì ưu tiên level cao hơn
+        scores.sort((a,b) => b.score - a.score || b.level - a.level);
+
+        const listEl = document.getElementById("scoreList");
+        listEl.innerHTML = "";
+
+        scores.slice(0,10).forEach(s=>{
+            const li = document.createElement("li");
+            li.textContent = `${s.name} - Điểm: ${s.score} - Màn: ${s.level}`;
+            listEl.appendChild(li);
+        });
+    }
 
         let gameRunning = false;
         let autoShootInterval;
@@ -177,6 +206,7 @@
         guide.style.display="none"; 
         contact.style.display="none"; 
         gameOverDiv.style.display="none";
+        document.getElementById("leaderboard").style.display="none"; // thêm dòng này
         gameRunning=false; 
         stopAutoShoot();
         if(touchControl){ document.body.removeChild(touchControl); touchControl=null; }
@@ -184,18 +214,29 @@
       }
         // Game start/restart
         function startGame(){ 
-          menu.style.display="none"; 
-          guide.style.display="none"; 
-          contact.style.display="none"; 
-          gameOverDiv.style.display="none"; 
-          gameRunning=true; 
-          resizeCanvas(); 
-          init(); 
-          if(isMobile) createTouchControl(); 
-          startAutoShoot(); 
-          draw(); 
-          document.getElementById("homeBtn").style.display="block"; // hiện Home
+        const nameInput = document.getElementById("playerName").value.trim();
+        if(!nameInput){
+          alert("Vui lòng nhập tên nhân vật!");
+          return;
         }
+
+        menu.style.display="none"; 
+        guide.style.display="none"; 
+        contact.style.display="none"; 
+        gameOverDiv.style.display="none"; 
+        gameRunning = true; 
+
+        resizeCanvas(); 
+        init(); // Khởi tạo player ở đây
+        player.name = nameInput; // gán tên sau khi init()
+
+        if(isMobile) createTouchControl(); 
+        startAutoShoot(); 
+        draw(); 
+        document.getElementById("homeBtn").style.display = "block";
+}
+
+
         function restartGame(){ 
         gameOverDiv.style.display="none"; 
         gameRunning=true; 
@@ -206,11 +247,26 @@
         draw(); 
         document.getElementById("homeBtn").style.display="block"; // hiện Home
       }
-        function gameOver(){ gameRunning=false; stopAutoShoot(); finalScoreEl.textContent="Điểm của bạn: "+score; gameOverDiv.style.display="flex"; }
+        // Hàm lưu điểm vào localStorage
+      function saveScore(){
+    if(!player.name) player.name = "Người chơi"; // fallback
+    let scores = JSON.parse(localStorage.getItem("leaderboard")||"[]");
+    // Lưu tên, điểm, level cao nhất
+    scores.push({name: player.name, score: score, level: level});
+    localStorage.setItem("leaderboard", JSON.stringify(scores));
+}
 
+      // Cập nhật gameOver để lưu điểm
+      function gameOver(){ 
+        gameRunning = false; 
+        stopAutoShoot(); 
+        finalScoreEl.textContent = "Điểm của bạn: " + score; 
+        saveScore(); // lưu điểm vào bảng xếp hạng
+        gameOverDiv.style.display = "flex"; 
+      }
         // Init
         function init(){ 
-          player={ x: canvas.width/2-32, y: canvas.height-100, w:64, h:64, speed:6, fireRate:400, lastShot:0, bulletLevel:1, damage:1, hp:5 };
+          player={ x: canvas.width/2-32, y: canvas.height-100, w:64, h:64, speed:6, fireRate:600, lastShot:0, bulletLevel:1, damage:1, hp:5 };
           bullets=[]; enemies=[]; eggs=[]; items=[]; boss=null;
           level=1; wave=1; score=0; keys={};
           maxWaves=[3,5,10]; spawnEnemies(); initStars();
@@ -435,7 +491,7 @@ function spawnMiniBosses(parentBoss){
               else if(typeRand<0.4) type="dame";
               else if(typeRand<0.6) type="multishot";
               else if(typeRand<0.8) type="heal";
-              else type="fireRateBoost"; // thêm item tăng tốc độ bắn
+
               items.push({x:en.x,y:en.y,w:20,h:20,type});
             }
               }
@@ -467,12 +523,13 @@ function spawnMiniBosses(parentBoss){
 
   // Nếu là boss màn 3 thì WIN
   if(level === 3){
-    gameRunning = false;
-    stopAutoShoot();
-    finalScoreWinEl.textContent = "Điểm của bạn: " + score;
-    winDiv.style.display = "flex";
-    document.getElementById("homeBtn").style.display = "none";
-  }
+  gameRunning = false;
+  stopAutoShoot();
+  saveScore(); // lưu điểm
+  finalScoreWinEl.textContent = "Điểm của bạn: " + score;
+  winDiv.style.display = "flex";
+  document.getElementById("homeBtn").style.display = "none";
+}
 }
               }   });
         }
@@ -561,7 +618,7 @@ function spawnMiniBosses(parentBoss){
           else if(it.type === "dame") player.damage += 1;
           else if(it.type === "multishot") player.bulletLevel = Math.min(3, player.bulletLevel+1);
           else if(it.type === "heal") player.hp = Math.min(5, player.hp+1);
-          else if(it.type === "fireRateBoost") player.fireRate = Math.max(50, player.fireRate - 100);
+
           items.splice(i,1);
         }
       }
@@ -589,15 +646,7 @@ function spawnMiniBosses(parentBoss){
           ctx.closePath();
           ctx.fill();
         }
-        else if(it.type === "fireRateBoost"){ // mũi tên đỏ
-        ctx.fillStyle = "red";
-        ctx.beginPath();
-        ctx.moveTo(it.x, it.y+it.h);
-        ctx.lineTo(it.x+it.w/2, it.y);
-        ctx.lineTo(it.x+it.w, it.y+it.h);
-        ctx.closePath();
-        ctx.fill();
-}
+        
         else if(it.type === "dame"){ // bùng nổ vàng
           ctx.fillStyle = "yellow";
           ctx.beginPath();
