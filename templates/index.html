@@ -95,6 +95,16 @@
         <button onclick="restartGame()">Chơi lại</button>
         <button onclick="backMenu()">Về Menu</button>
       </div>
+      <!-- Win -->
+      <div id="win" style="display:none;">
+        <h1>🎉 CHÚC MỪNG BẠN CHIẾN THẮNG BOSS CUỐI 🎉</h1>
+        <p id="finalScoreWin"></p>
+        <button onclick="restartGame()">Chơi lại</button>
+        <button onclick="backMenu()">Về Menu</button>
+      </div>
+
+      <canvas id="gameCanvas"></canvas>
+      <button id="homeBtn" onclick="backMenu()" style="display:none;">🏠 Home</button>
 
       <canvas id="gameCanvas"></canvas>
       <button id="homeBtn" onclick="backMenu()" style="display:none;">🏠 Home</button>
@@ -108,6 +118,9 @@
         const contact = document.getElementById("contact");
         const gameOverDiv = document.getElementById("gameOver");
         const finalScoreEl = document.getElementById("finalScore");
+        const winDiv = document.getElementById("win");
+        const finalScoreWinEl = document.getElementById("finalScoreWin");
+
 
         let gameRunning = false;
         let autoShootInterval;
@@ -289,7 +302,7 @@
   let bossSize = 150;
   let bossHp = 50; // Boss màn 1
   if(level === 2) bossHp = 100; // Boss màn 2
-  if(level === 3) bossHp = 150; // Boss màn 3
+  if(level === 3) bossHp = 200; // Boss màn 3
   boss = new Boss(canvas.width/2-bossSize/2, 50, level, bossHp);
 }
 
@@ -334,7 +347,7 @@
       }
       else if(this.type === 3){
         // Boss 3: vừa bắn 10 tia vừa teleport
-        shootPattern(this, bullets, 10);
+        shootPattern(this, bullets, 15);
 
         // Khi máu < 30% thì phân thân (chỉ 1 lần)
         if(this.hp < this.maxHp*0.3 && !this.spawnedClones){
@@ -445,14 +458,22 @@ function spawnMiniBosses(parentBoss){
           
           addExplosion(b.x+b.w/2, b.y+b.h/2,"orange"); // nổ hiệu ứng
           if(boss && boss.hp <= 0){
-          score += 500;
-          let bx = boss.x + boss.w/2;
-          let by = boss.y + boss.h/2;
-          boss = null; 
-          bossDefeated = true;
-          addExplosion(bx, by, "yellow"); // dùng vị trí đã lưu
-        }
+  score += 500;
+  let bx = boss.x + boss.w/2;
+  let by = boss.y + boss.h/2;
+  boss = null; 
+  bossDefeated = true;
+  addExplosion(bx, by, "yellow");
 
+  // Nếu là boss màn 3 thì WIN
+  if(level === 3){
+    gameRunning = false;
+    stopAutoShoot();
+    finalScoreWinEl.textContent = "Điểm của bạn: " + score;
+    winDiv.style.display = "flex";
+    document.getElementById("homeBtn").style.display = "none";
+  }
+}
               }   });
         }
           eggs.forEach((eg, i) => {
