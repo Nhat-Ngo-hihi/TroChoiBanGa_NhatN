@@ -427,14 +427,15 @@ function spawnMiniBosses(parentBoss){
     const hitX = eg.x + (eg.w - hitSize)/2;
     const hitY = eg.y + (eg.h - hitSize)/2;
 
-    if(hitX < player.x + player.w &&
-      hitX + hitSize > player.x &&
-      hitY < player.y + player.h &&
-      hitY + hitSize > player.y){
-        player.hp--;
-        eggs.splice(i,1);
-        if(player.hp<=0) gameOver();
-    }
+    if(eg.x < player.x + player.w &&
+    eg.x + eg.w > player.x &&
+    eg.y < player.y + player.h &&
+    eg.y + eg.h > player.y){
+      player.hp--;
+      eggs.splice(i,1);
+      if(player.hp<=0) gameOver();
+}
+
     });
       }
         function drawBackground(){ let bg=bgImgs[Math.min(level-1,bgImgs.length-1)]; canvas.style.background=`url('${bg}') no-repeat center center`; canvas.style.backgroundSize="cover"; }
@@ -466,7 +467,7 @@ function spawnMiniBosses(parentBoss){
         }
       // Vẽ player
       ctx.drawImage(playerImg,player.x,player.y,player.w,player.h);
-      ctx.fillStyle="red"; 
+      ctx.fillStyle="black"; 
       bullets.forEach(b=>ctx.fillRect(b.x,b.y,b.w,b.h));
 
       // Vẽ enemies
