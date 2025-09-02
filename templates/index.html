@@ -125,6 +125,7 @@
         let level, score, keys;
         let wave, maxWaves;
         let bossDefeated = false; // global
+        let waitingForNextWave = false; // chặn spawn liên tục
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         let explosions = [];
 
@@ -380,6 +381,32 @@ function spawnMiniBosses(parentBoss){
     enemies.push(mini); // hoặc bạn có thể push vào 1 mảng riêng miniBosses
         }
       }
+          function checkWaveProgress() {
+    // Chưa hết enemy hoặc còn boss -> return
+    if(enemies.length > 0 || boss) return;
+
+    if(!waitingForNextWave){
+        waitingForNextWave = true;
+        setTimeout(() => {
+            wave++;
+            if(wave > maxWaves[level-1]){
+                // Nếu hết wave thì spawn boss tiếp theo
+                spawnBoss();
+            } else {
+                spawnEnemies();
+            }
+            waitingForNextWave = false;
+        }, 100);
+    }
+
+    // Nếu boss bị đánh bại và không còn mini-boss nào
+    if(bossDefeated && enemies.length === 0){
+        level++;
+        wave = 1;
+        bossDefeated = false;
+        spawnEnemies(); // bắt đầu wave mới
+    }
+}
         function update(){
           if(!gameRunning) return;
           updateStars();
@@ -476,23 +503,9 @@ function spawnMiniBosses(parentBoss){
           eggs.forEach(eg => ctx.fillRect(eg.x, eg.y, eg.w, eg.h));
             // === Kiểm tra qua màn ===
           // Trong draw() hoặc update():
-          if(enemies.length === 0 && !boss && !bossDefeated){
-              wave++;
-              if(wave > maxWaves[level-1]){
-                  spawnBoss();
-              } else {
-                  spawnEnemies();
-              }
-          }
-
-          // Khi chuyển màn xong, reset bossDefeated
-          if(bossDefeated && enemies.length === 0){
-          level++;
-          wave = 1;
-          bossDefeated = false;
-          spawnEnemies();
-        }
-
+          // === Kiểm tra qua màn ===
+        // === Kiểm tra qua màn ===
+        checkWaveProgress();
         function drawBackground() {
           let bg = bgImgs[Math.min(level-1,bgImgs.length-1)];
           canvas.style.background = `url('${bg}') no-repeat center center`;
