@@ -24,7 +24,7 @@
         body {
           margin: 0;
           padding: 0;
-          background: black;
+          background: rgb(238, 131, 10);
           overflow: hidden;
           font-family: Arial, sans-serif;
         }
@@ -69,7 +69,7 @@
       <div id="guide" style="display:none;">
       <h2>📖 Hướng Dẫn</h2>
       <p><b>Điều khiển:</b> Chuột để di chuyển (PC), trên mobile dùng nút tròn bên phải</p>
-      <p><b>Màu <span style="color:rgb(0, 0, 0);">Đen</span>:</b> Đạn của bạn</p>
+      <p><b>Màu <span style="color:rgb(0, 0, 0);">Cam</span>:</b> Đạn của bạn</p>
       <p><b>Màu <span style="color:white;">Trắng</span>:</b> Đạn của địch</p>
       <p><b>Item:</b></p>
       <p><b style="color:rgb(4, 4, 63);">Xanh:</b> Speed (tăng tốc độ)</p>
@@ -416,27 +416,36 @@ function spawnMiniBosses(parentBoss){
             }
           });
         }
-          eggs.forEach((eg,i)=>{
-    if(eg.vx!==undefined){ eg.x+=eg.vx; eg.y+=eg.vy; } // đạn boss
-    else { eg.y+=eg.dy; } // đạn gà thường
+          eggs.forEach((eg, i) => {
+    // Cập nhật vị trí đạn
+    if (eg.vx !== undefined) { 
+        eg.x += eg.vx; 
+        eg.y += eg.vy; // đạn boss
+    } else { 
+        eg.y += eg.dy; // đạn gà thường
+    }
 
-    if(eg.y>canvas.height || eg.x<0 || eg.x>canvas.width) eggs.splice(i,1);
+    // Xóa đạn ra khỏi màn hình
+    if (eg.y > canvas.height || eg.x < 0 || eg.x > canvas.width) {
+        eggs.splice(i, 1);
+        return;
+    }
 
-    // Hitbox nhỏ hơn kích thước đạn
-    const hitSize = 2; // chỉ tâm viên đạn gây sát thương
-    const hitX = eg.x + (eg.w - hitSize)/2;
-    const hitY = eg.y + (eg.h - hitSize)/2;
+    // Hitbox nhỏ hơn kích thước đạn: dùng tâm viên đạn
+    const hitSize = 2; // bán kính gây sát thương
+    const hitX = eg.x + eg.w / 2;
+    const hitY = eg.y + eg.h / 2;
 
-    if(eg.x < player.x + player.w &&
-    eg.x + eg.w > player.x &&
-    eg.y < player.y + player.h &&
-    eg.y + eg.h > player.y){
-      player.hp--;
-      eggs.splice(i,1);
-      if(player.hp<=0) gameOver();
-}
-
-    });
+    if (
+        hitX > player.x && hitX < player.x + player.w &&
+        hitY > player.y && hitY < player.y + player.h
+    ) {
+        player.hp--;
+        eggs.splice(i, 1);
+        addExplosion(player.x + player.w/2, player.y + player.h/2, "red"); // nổ khi trúng
+        if (player.hp <= 0) gameOver();
+    }
+});
       }
         function drawBackground(){ let bg=bgImgs[Math.min(level-1,bgImgs.length-1)]; canvas.style.background=`url('${bg}') no-repeat center center`; canvas.style.backgroundSize="cover"; }
 
@@ -446,7 +455,7 @@ function spawnMiniBosses(parentBoss){
           drawBackground();
           drawStars();
           ctx.drawImage(playerImg,player.x,player.y,player.w,player.h);
-          ctx.fillStyle="black"; bullets.forEach(b=>ctx.fillRect(b.x,b.y,b.w,b.h));
+          ctx.fillStyle="orange"; bullets.forEach(b=>ctx.fillRect(b.x,b.y,b.w,b.h));
           enemies.forEach(en=>ctx.drawImage(enemyImg,en.x,en.y,en.w,en.h));
           if(boss){ ctx.drawImage(bossImg,boss.x,boss.y,boss.w,boss.h); ctx.fillStyle="red"; ctx.fillRect(200,20,(boss.hp/boss.maxHp)*400,20); ctx.strokeStyle="white"; ctx.strokeRect(200,20,400,20); }
           ctx.fillStyle = "white"; 
@@ -467,7 +476,7 @@ function spawnMiniBosses(parentBoss){
         }
       // Vẽ player
       ctx.drawImage(playerImg,player.x,player.y,player.w,player.h);
-      ctx.fillStyle="black"; 
+      ctx.fillStyle="orange"; 
       bullets.forEach(b=>ctx.fillRect(b.x,b.y,b.w,b.h));
 
       // Vẽ enemies
