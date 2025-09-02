@@ -464,7 +464,7 @@
       }
       else if(this.type === 3){
         // Boss 3: vừa bắn 10 tia vừa teleport
-        shootPattern(this, bullets, 15);
+        shootPattern(this, bullets, 10);
 
         // Khi máu < 30% thì phân thân (chỉ 1 lần)
         if(this.hp < this.maxHp*0.3 && !this.spawnedClones){
