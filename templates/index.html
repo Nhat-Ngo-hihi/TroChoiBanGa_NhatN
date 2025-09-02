@@ -276,13 +276,46 @@
         document.getElementById("homeBtn").style.display="block"; // hiện Home
       }
         // Hàm lưu điểm vào localStorage
-      function saveScore(){
-    if(!player.name) player.name = "Người chơi"; // fallback
-    let scores = JSON.parse(localStorage.getItem("leaderboard")||"[]");
-    // Lưu tên, điểm, level cao nhất
-    scores.push({name: player.name, score: score, level: level});
-    localStorage.setItem("leaderboard", JSON.stringify(scores));
-}
+      // Hàm lưu điểm vào localStorage
+        function showLeaderboard(){
+      menu.style.display = "none";
+      guide.style.display = "none";
+      contact.style.display = "none";
+      gameOverDiv.style.display = "none";
+      document.getElementById("leaderboard").style.display = "flex";
+
+      // Lấy dữ liệu từ localStorage
+      let scores = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+
+      // Top mặc định
+      const defaultTop = [
+          {name: "Nhật Ngô", score: 10000, level: 3},
+          {name: "Nhóc nè", score: 9999, level: 3},
+          {name: "Heheboy", score: 5000, level: 2}
+      ];
+
+      // Thêm top mặc định nếu chưa có ai đủ điểm
+      defaultTop.forEach(def => {
+          if(!scores.some(s => s.name === def.name)) scores.push(def);
+      });
+
+      // Sắp xếp giảm dần theo score, ưu tiên level nếu bằng điểm
+      scores.sort((a,b) => b.score - a.score || b.level - a.level);
+
+      // Lấy top 10
+      scores = scores.slice(0,10);
+
+      const listEl = document.getElementById("scoreList");
+      listEl.innerHTML = "";
+      scores.forEach(s => {
+          const li = document.createElement("li");
+          li.textContent = `${s.name} - Điểm: ${s.score} - Màn: ${s.level}`;
+          listEl.appendChild(li);
+      });
+
+      // Lưu lại top 10 để đồng bộ localStorage
+      localStorage.setItem("leaderboard", JSON.stringify(scores));
+  }
 
       // Cập nhật gameOver để lưu điểm
       function gameOver(){ 
