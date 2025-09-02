@@ -381,32 +381,30 @@ function spawnMiniBosses(parentBoss){
     enemies.push(mini); // hoặc bạn có thể push vào 1 mảng riêng miniBosses
         }
       }
-          function checkWaveProgress() {
-    // Chưa hết enemy hoặc còn boss -> return
-    if(enemies.length > 0 || boss) return;
+            function checkWaveProgress() {
+      if(enemies.length > 0 || boss) return;
 
-    if(!waitingForNextWave){
-        waitingForNextWave = true;
-        setTimeout(() => {
-            wave++;
-            if(wave > maxWaves[level-1]){
-                // Nếu hết wave thì spawn boss tiếp theo
-                spawnBoss();
-            } else {
-                spawnEnemies();
-            }
-            waitingForNextWave = false;
-        }, 100);
-    }
+      if(!waitingForNextWave){
+          waitingForNextWave = true;
+          setTimeout(() => {
+              if(wave > maxWaves[level-1]){
+                  spawnBoss();
+              } else {
+                  spawnEnemies();
+              }
+              wave++;
+              waitingForNextWave = false;
+          }, 200); // tăng delay một chút để Vercel load mượt
+      }
 
-    // Nếu boss bị đánh bại và không còn mini-boss nào
-    if(bossDefeated && enemies.length === 0){
-        level++;
-        wave = 1;
-        bossDefeated = false;
-        spawnEnemies(); // bắt đầu wave mới
-    }
-}
+      if(bossDefeated && enemies.length === 0){
+          level++;
+          wave = 1;
+          bossDefeated = false;
+          spawnEnemies();
+      }
+  }
+
         function update(){
           if(!gameRunning) return;
           updateStars();
