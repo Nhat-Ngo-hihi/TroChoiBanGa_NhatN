@@ -218,10 +218,12 @@
           }
         }
 
+        // Mouse luôn cập nhật vị trí 2D, không phụ thuộc gameRunning
         canvas.addEventListener("mousemove", e=>{
-          if(!isMobile && gameRunning){
-            const rect=canvas.getBoundingClientRect();
-            player.x = Math.max(0, Math.min(e.clientX - rect.left - player.w/2, canvas.width - player.w));
+        if(!isMobile){
+        const rect=canvas.getBoundingClientRect();
+        player.x = Math.max(0, Math.min(e.clientX - rect.left - player.w/2, canvas.width - player.w));
+        player.y = Math.max(0, Math.min(e.clientY - rect.top - player.h/2, canvas.height - player.h));
           }
         });
 
@@ -254,20 +256,20 @@
         document.body.appendChild(touchControl);
 
         touchControl.addEventListener("touchmove", e=>{
-          e.preventDefault();
-          const touch = e.touches[0];
-          const rect = canvas.getBoundingClientRect();
-          const newX = Math.max(0, Math.min(touch.clientX - rect.left - player.w/2, canvas.width - player.w));
-          player.x = newX;
+        e.preventDefault();
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        player.x = Math.max(0, Math.min(touch.clientX - rect.left - player.w/2, canvas.width - player.w));
+        player.y = Math.max(0, Math.min(touch.clientY - rect.top - player.h/2, canvas.height - player.h));
 
-          // Dấu chấm trung tâm di chuyển theo ngón tay
-          const tcRect = touchControl.getBoundingClientRect();
-          let offsetX = touch.clientX - (tcRect.left + tcRect.width/2);
-          let offsetY = touch.clientY - (tcRect.top + tcRect.height/2);
-          offsetX = Math.max(-tcRect.width/2 + 15, Math.min(offsetX, tcRect.width/2 - 15));
-          offsetY = Math.max(-tcRect.height/2 + 15, Math.min(offsetY, tcRect.height/2 - 15));
-          centerDot.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-        }, { passive: false });
+        // Dấu chấm trung tâm di chuyển theo ngón tay
+        const tcRect = touchControl.getBoundingClientRect();
+        let offsetX = touch.clientX - (tcRect.left + tcRect.width/2);
+        let offsetY = touch.clientY - (tcRect.top + tcRect.height/2);
+        offsetX = Math.max(-tcRect.width/2 + 15, Math.min(offsetX, tcRect.width/2 - 15));
+        offsetY = Math.max(-tcRect.height/2 + 15, Math.min(offsetY, tcRect.height/2 - 15));
+        centerDot.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+      }, { passive: false });
 
         // Reset chấm khi thả ngón tay
         touchControl.addEventListener("touchend", e=>{
@@ -405,16 +407,34 @@ function spawnMiniBosses(parentBoss){
           boss.shoot(eggs);
 
           // Check va chạm đạn player vs boss
-          bullets.forEach((b,j)=>{
-            if(b.x<boss.x+boss.w && b.x+b.w>boss.x && b.y<boss.y+boss.h && b.h+b.y>boss.y){
-              boss.hp-=player.damage; bullets.splice(j,1);
-              if(boss.hp<=0){
-                boss=null; wave=0; level++;
-                if(level<=3){spawnEnemies(); wave++;}
-                else { alert("🎉 Bạn đã thắng toàn bộ game! Điểm: "+score); backMenu(); }
-              }
+      bullets.forEach((b,j)=>{
+        if(
+          b.x < boss.x + boss.w &&
+          b.x + b.w > boss.x &&
+          b.y < boss.y + boss.h &&
+          b.y + b.h > boss.y
+        ){
+          boss.hp -= player.damage; // trừ máu boss
+          bullets.splice(j,1);      // xóa viên đạn
+          addExplosion(b.x+b.w/2, b.y+b.h/2,"orange"); // nổ hiệu ứng
+          if(boss.hp <= 0){
+            boss = null;
+            wave = 0;
+            if(level === 1){
+              alert("🎉 Bạn đã thắng màn 1! Nhấn OK để đến màn 2");
+              level = 2;
+              spawnEnemies();
+            } else if(level === 2){
+              alert("🎉 Bạn đã thắng màn 2! Nhấn OK để đến màn 3");
+              level = 3;
+              spawnEnemies();
+            } else if(level === 3){
+              alert("🏆 Chúc mừng! Bạn đã hoàn thành trò chơi! Điểm cuối: " + score);
+              backMenu();
             }
-          });
+          }
+        }
+      });
         }
           eggs.forEach((eg, i) => {
     // Cập nhật vị trí đạn
@@ -455,7 +475,7 @@ function spawnMiniBosses(parentBoss){
           drawBackground();
           drawStars();
           ctx.drawImage(playerImg,player.x,player.y,player.w,player.h);
-          ctx.fillStyle="orange"; bullets.forEach(b=>ctx.fillRect(b.x,b.y,b.w,b.h));
+          ctx.fillStyle="black"; bullets.forEach(b=>ctx.fillRect(b.x,b.y,b.w,b.h));
           enemies.forEach(en=>ctx.drawImage(enemyImg,en.x,en.y,en.w,en.h));
           if(boss){ ctx.drawImage(bossImg,boss.x,boss.y,boss.w,boss.h); ctx.fillStyle="red"; ctx.fillRect(200,20,(boss.hp/boss.maxHp)*400,20); ctx.strokeStyle="white"; ctx.strokeRect(200,20,400,20); }
           ctx.fillStyle = "white"; 
