@@ -423,14 +423,14 @@ function spawnMiniBosses(parentBoss){
     if(eg.y>canvas.height || eg.x<0 || eg.x>canvas.width) eggs.splice(i,1);
 
     // Hitbox nhỏ hơn kích thước đạn
-    const hitSize = 2; // phạm vi trúng thực sự
+    const hitSize = 2; // chỉ tâm viên đạn gây sát thương
     const hitX = eg.x + (eg.w - hitSize)/2;
     const hitY = eg.y + (eg.h - hitSize)/2;
 
     if(hitX < player.x + player.w &&
-       hitX + hitSize > player.x &&
-       hitY < player.y + player.h &&
-       hitY + hitSize > player.y){
+      hitX + hitSize > player.x &&
+      hitY < player.y + player.h &&
+      hitY + hitSize > player.y){
         player.hp--;
         eggs.splice(i,1);
         if(player.hp<=0) gameOver();
@@ -445,7 +445,7 @@ function spawnMiniBosses(parentBoss){
           drawBackground();
           drawStars();
           ctx.drawImage(playerImg,player.x,player.y,player.w,player.h);
-          ctx.fillStyle="red"; bullets.forEach(b=>ctx.fillRect(b.x,b.y,b.w,b.h));
+          ctx.fillStyle="black"; bullets.forEach(b=>ctx.fillRect(b.x,b.y,b.w,b.h));
           enemies.forEach(en=>ctx.drawImage(enemyImg,en.x,en.y,en.w,en.h));
           if(boss){ ctx.drawImage(bossImg,boss.x,boss.y,boss.w,boss.h); ctx.fillStyle="red"; ctx.fillRect(200,20,(boss.hp/boss.maxHp)*400,20); ctx.strokeStyle="white"; ctx.strokeRect(200,20,400,20); }
           ctx.fillStyle = "white"; 
