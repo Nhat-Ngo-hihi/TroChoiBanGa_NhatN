@@ -4,6 +4,23 @@
       <meta charset="UTF-8">
       <title>Game Bắn Gà Mini</title>
       <style>
+        #homeBtn {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          padding: 10px 20px;
+          font-size: 18px;
+          background: rgba(255,255,255,0.2);
+          color: white;
+          border: 2px solid white;
+          border-radius: 10px;
+          cursor: pointer;
+          z-index: 200;
+        }
+        #homeBtn:hover {
+          background: rgba(255,255,255,0.4);
+        }
+
         body {
           margin: 0;
           padding: 0;
@@ -15,7 +32,7 @@
           display: block;
           border: 2px solid white;
         }
-        #menu, #guide, #gameOver, #contact #menu {
+        #menu, #guide, #gameOver, #contact {
           position: absolute;
           top: 0; left: 0; right: 0; bottom: 0;
           background: url('static/nen.png') no-repeat center center;
@@ -42,7 +59,7 @@
       <!-- Menu -->
       <div id="menu">
         <h1>🐔 Game Bắn Gà Mini 🐔</h1>
-        <p>Nhà phát triển: <b>NhatNgo2K2</b></p>
+        <p>Nhà phát triển: <b>NhatNgo - nhóc nè</b></p>
         <button onclick="startGame()">Chơi</button>
         <button onclick="showGuide()">Hướng Dẫn</button>
         <button onclick="showContact()">Liên Hệ</button>
@@ -50,18 +67,17 @@
 
       <!-- Hướng dẫn -->
       <div id="guide" style="display:none;">
-        <h2>📖 Hướng Dẫn</h2>
-        <p>Điều khiển: Chuột để di chuyển (PC), trên mobile dùng nút tròn bên phải</p>
-        <p>Màu <span style="color:red;">Đỏ</span>: Đạn của bạn</p>
-        <p>Màu <span style="color:white;">Trắng</span>: Đạn của địch</p>
-        <p>Item:</p>
-        <p style="color:blue;">Xanh: Speed (tăng tốc độ)</p>
-        <p style="color:yellow;">Vàng: Dame (tăng sát thương)</p>
-        <p style="color:green;">Xanh lá: Đạn (thêm 1 đường đạn)</p>
-        <p style="color:pink;">Hồng: Hồi 1 máu</p>
-        <button onclick="backMenu()">Quay lại</button>
-      </div>
-
+      <h2>📖 Hướng Dẫn</h2>
+      <p><b>Điều khiển:</b> Chuột để di chuyển (PC), trên mobile dùng nút tròn bên phải</p>
+      <p><b>Màu <span style="color:red;">Đỏ</span>:</b> Đạn của bạn</p>
+      <p><b>Màu <span style="color:white;">Trắng</span>:</b> Đạn của địch</p>
+      <p><b>Item:</b></p>
+      <p><b style="color:rgb(4, 4, 63);">Xanh:</b> Speed (tăng tốc độ)</p>
+      <p><b style="color:yellow;">Vàng:</b> Dame (tăng sát thương)</p>
+      <p><b style="color:green;">Xanh lá:</b> Đạn (thêm 1 đường đạn)</p>
+      <p><b style="color:pink;">Hồng:</b> Hồi 1 máu</p>
+      <button onclick="backMenu()">Quay lại</button>
+    </div>
       <!-- Liên hệ -->
       <div id="contact" style="display:none;">
         <h2>📧 Liên Hệ</h2>
@@ -73,13 +89,14 @@
 
       <!-- Game Over -->
       <div id="gameOver" style="display:none;">
-        <h1>💀 GAME OVER 💀</h1>
+        <h1>💀 GAME OVER BẠN QUÁ GÀ LÊU LÊU 💀</h1>
         <p id="finalScore"></p>
         <button onclick="restartGame()">Chơi lại</button>
         <button onclick="backMenu()">Về Menu</button>
       </div>
 
       <canvas id="gameCanvas"></canvas>
+      <button id="homeBtn" onclick="backMenu()" style="display:none;">🏠 Home</button>
 
       <script>
         const canvas = document.getElementById("gameCanvas");
@@ -100,14 +117,30 @@
         const enemyImg = new Image();
         enemyImg.src = "/static/quaivat.png";
         const bossImg = new Image();
-        bossImg.src = "/static/quaivat.png"; 
+        bossImg.src = "/static/boss.png"; 
         const bgImgs = ["/static/nen1.png","/static/nen2.png","/static/nen3.png"];
 
         let player, bullets, enemies, eggs, items, boss;
         let level, score, keys;
         let wave, maxWaves;
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        let explosions = [];
 
+        function addExplosion(x, y, color="orange") {
+          let particles = [];
+          for (let i = 0; i < 20; i++) {
+            let angle = Math.random() * Math.PI * 2;
+            let speed = Math.random() * 4 + 2;
+            particles.push({
+              x, y,
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed,
+              life: 30,
+              color
+            });
+          }
+          explosions.push(particles);
+        }
         // Hiệu ứng sao
         let stars = [];
         function initStars(num=100){
@@ -124,15 +157,39 @@
         function showGuide(){ menu.style.display="none"; guide.style.display="flex"; }
         function showContact(){ menu.style.display="none"; guide.style.display="none"; gameOverDiv.style.display="none"; contact.style.display="flex"; }
         function backMenu(){
-          menu.style.display="flex"; guide.style.display="none"; contact.style.display="none"; gameOverDiv.style.display="none";
-          gameRunning=false; stopAutoShoot();
-          if(touchControl){ document.body.removeChild(touchControl); touchControl=null; }
-        }
-
+        menu.style.display="flex"; 
+        guide.style.display="none"; 
+        contact.style.display="none"; 
+        gameOverDiv.style.display="none";
+        gameRunning=false; 
+        stopAutoShoot();
+        if(touchControl){ document.body.removeChild(touchControl); touchControl=null; }
+        document.getElementById("homeBtn").style.display="none"; // ẩn Home khi về menu
+      }
         // Game start/restart
-        function startGame(){ menu.style.display="none"; guide.style.display="none"; contact.style.display="none"; gameOverDiv.style.display="none"; gameRunning=true; resizeCanvas(); init(); if(isMobile) createTouchControl(); startAutoShoot(); draw(); }
-        function restartGame(){ gameOverDiv.style.display="none"; gameRunning=true; resizeCanvas(); init(); if(isMobile) createTouchControl(); startAutoShoot(); draw(); }
-
+        function startGame(){ 
+          menu.style.display="none"; 
+          guide.style.display="none"; 
+          contact.style.display="none"; 
+          gameOverDiv.style.display="none"; 
+          gameRunning=true; 
+          resizeCanvas(); 
+          init(); 
+          if(isMobile) createTouchControl(); 
+          startAutoShoot(); 
+          draw(); 
+          document.getElementById("homeBtn").style.display="block"; // hiện Home
+        }
+        function restartGame(){ 
+        gameOverDiv.style.display="none"; 
+        gameRunning=true; 
+        resizeCanvas(); 
+        init(); 
+        if(isMobile) createTouchControl(); 
+        startAutoShoot(); 
+        draw(); 
+        document.getElementById("homeBtn").style.display="block"; // hiện Home
+      }
         function gameOver(){ gameRunning=false; stopAutoShoot(); finalScoreEl.textContent="Điểm của bạn: "+score; gameOverDiv.style.display="flex"; }
 
         // Init
@@ -168,55 +225,55 @@
         });
 
         function createTouchControl(){
-          if(touchControl) return; // tránh tạo nhiều lần
+        if(touchControl) return; // tránh tạo nhiều lần
 
-          touchControl = document.createElement("div");
-          touchControl.style.position = "fixed";
-          touchControl.style.right = "20px";
-          touchControl.style.bottom = "50px";
-          touchControl.style.width = "120px";  // tăng kích thước
-          touchControl.style.height = "120px";
-          touchControl.style.borderRadius = "50%";
-          touchControl.style.background = "rgba(255,255,255,0.2)"; // mờ hơn
-          touchControl.style.zIndex = "100";
-          touchControl.style.display = "flex";
-          touchControl.style.justifyContent = "center";
-          touchControl.style.alignItems = "center";
-          touchControl.style.backdropFilter = "blur(4px)"; // tạo hiệu ứng mờ nền
+        touchControl = document.createElement("div");
+        touchControl.style.position = "fixed";
+        touchControl.style.right = "30px";
+        touchControl.style.bottom = "70px";
+        touchControl.style.width = "160px";   // tăng kích thước
+        touchControl.style.height = "160px";
+        touchControl.style.borderRadius = "50%";
+        touchControl.style.background = "rgba(255,255,255,0.25)"; 
+        touchControl.style.zIndex = "100";
+        touchControl.style.display = "flex";
+        touchControl.style.justifyContent = "center";
+        touchControl.style.alignItems = "center";
+        touchControl.style.backdropFilter = "blur(6px)";
 
-          // Chấm trung tâm
-          const centerDot = document.createElement("div");
-          centerDot.style.width = "24px";
-          centerDot.style.height = "24px";
-          centerDot.style.borderRadius = "50%";
-          centerDot.style.background = "rgba(255,255,255,0.9)";
-          centerDot.style.transition = "transform 0.05s"; // hiệu ứng chuyển động
-          touchControl.appendChild(centerDot);
+        // Chấm trung tâm
+        const centerDot = document.createElement("div");
+        centerDot.style.width = "30px";
+        centerDot.style.height = "30px";
+        centerDot.style.borderRadius = "50%";
+        centerDot.style.background = "rgba(255,255,255,0.9)";
+        centerDot.style.transition = "transform 0.05s";
+        touchControl.appendChild(centerDot);
 
-          document.body.appendChild(touchControl);
+        document.body.appendChild(touchControl);
 
-          touchControl.addEventListener("touchmove", e=>{
-            e.preventDefault();
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            const newX = Math.max(0, Math.min(touch.clientX - rect.left - player.w/2, canvas.width - player.w));
-            player.x = newX;
+        touchControl.addEventListener("touchmove", e=>{
+          e.preventDefault();
+          const touch = e.touches[0];
+          const rect = canvas.getBoundingClientRect();
+          const newX = Math.max(0, Math.min(touch.clientX - rect.left - player.w/2, canvas.width - player.w));
+          player.x = newX;
 
-            // Dấu chấm trung tâm di chuyển theo ngón tay
-            const tcRect = touchControl.getBoundingClientRect();
-            let offsetX = touch.clientX - (tcRect.left + tcRect.width/2);
-            let offsetY = touch.clientY - (tcRect.top + tcRect.height/2);
-            // giới hạn chấm trong vùng touch
-            offsetX = Math.max(-tcRect.width/2 + 12, Math.min(offsetX, tcRect.width/2 - 12));
-            offsetY = Math.max(-tcRect.height/2 + 12, Math.min(offsetY, tcRect.height/2 - 12));
-            centerDot.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-          }, { passive: false });
+          // Dấu chấm trung tâm di chuyển theo ngón tay
+          const tcRect = touchControl.getBoundingClientRect();
+          let offsetX = touch.clientX - (tcRect.left + tcRect.width/2);
+          let offsetY = touch.clientY - (tcRect.top + tcRect.height/2);
+          offsetX = Math.max(-tcRect.width/2 + 15, Math.min(offsetX, tcRect.width/2 - 15));
+          offsetY = Math.max(-tcRect.height/2 + 15, Math.min(offsetY, tcRect.height/2 - 15));
+          centerDot.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+        }, { passive: false });
 
-          // Reset chấm khi thả ngón tay
-          touchControl.addEventListener("touchend", e=>{
-            centerDot.style.transform = "translate(0,0)";
-          });
-        }
+        // Reset chấm khi thả ngón tay
+        touchControl.addEventListener("touchend", e=>{
+          centerDot.style.transform = "translate(0,0)";
+        });
+      }
+
         // Spawn
         function spawnEnemies(){
           enemies=[];
@@ -224,11 +281,99 @@
           for(let i=0;i<numEnemies;i++) enemies.push({ x:50+i*(canvas.width-100)/numEnemies, y:50, w:64, h:64, speed:2+level*0.5, dir:1, lastEgg:Date.now() });
         }
         function spawnBoss(){
-          let bossSize=150;
-          let bossHp=level===1?150:level===2?300:500;
-          boss={x:canvas.width/2-bossSize/2, y:50, w:bossSize, h:bossSize, speed:3, dir:1, hp:bossHp, maxHp:bossHp, lastEgg:Date.now()};
-        }
+  let bossSize=150;
+  let bossHp=level===1?150:level===2?300:500;
+  boss=new Boss(canvas.width/2-bossSize/2,50,level,bossHp);
+}
 
+// ==== DÁN PHẦN NÀY VÀO ĐÂY ==== 
+        class Boss {
+  constructor(x,y,type,hp){
+    this.x=x; this.y=y; this.w=150; this.h=150;
+    this.type=type; this.hp=hp; this.maxHp=hp;
+    this.speed=2; this.dir=1;
+    this.shootTimer=0; this.shootCount=0;
+    this.spawnedClones=false; // chỉ boss 3 mới dùng
+  }
+
+  move(canvas){
+    this.x+=this.dir*this.speed;
+    if(this.x<=0||this.x+this.w>=canvas.width) this.dir*=-1;
+
+    // Boss 2 & 3 có teleport ngẫu nhiên
+    if(this.type>=2 && Math.random()<0.01){
+      this.teleport(canvas);
+    }
+  }
+
+  teleport(canvas){
+    this.x=Math.random()*(canvas.width-this.w);
+    this.y=50+Math.random()*100;
+  }
+
+  shoot(bullets){
+    this.shootTimer++;
+    let interval = this.type===1 ? 70 : this.type===2 ? 60 : 50;
+    if(this.shootTimer > interval){
+      this.shootTimer = 0;
+
+      if(this.type === 1){
+        // Boss 1: 5 tia chụm vào player
+        shootPattern(this, bullets, 5);
+      }
+      else if(this.type === 2){
+        // Boss 2: 8 tia loe toả
+        shootPattern(this, bullets, 8);
+      }
+      else if(this.type === 3){
+        // Boss 3: vừa bắn 10 tia vừa teleport
+        shootPattern(this, bullets, 10);
+
+        // Khi máu < 30% thì phân thân (chỉ 1 lần)
+        if(this.hp < this.maxHp*0.3 && !this.spawnedClones){
+          this.spawnedClones = true;
+          spawnMiniBosses(this);
+        }
+      }
+    }
+  }
+}
+
+// Hàm bắn nhiều tia hướng về player
+function shootPattern(boss, bullets, count){
+  let dx = player.x + player.w/2 - (boss.x + boss.w/2);
+  let dy = player.y + player.h/2 - (boss.y + boss.h/2);
+  let base = Math.atan2(dy, dx);
+
+  for(let i=0; i<count; i++){
+    let ang = base + (i - (count-1)/2) * (Math.PI/20); // lan rộng
+    let speed = 5;
+    eggs.push({
+      x: boss.x+boss.w/2,
+      y: boss.y+boss.h/2,
+      w: 8, h: 8,
+      vx: Math.cos(ang)*speed,
+      vy: Math.sin(ang)*speed
+    });
+  }
+}
+
+// Hàm sinh ra mini boss (3 bản thể nhỏ)
+function spawnMiniBosses(parentBoss){
+  for(let i=0;i<3;i++){
+    let mini = new Boss(
+      parentBoss.x + i*60 - 60, 
+      parentBoss.y+50, 
+      99,  // type đặc biệt cho mini boss
+      80   // máu ít hơn
+    );
+    mini.w = mini.h = 80;
+    mini.speed = 3;
+    mini.shootTimer = 0;
+    mini.dir = i%2===0 ? 1 : -1;
+    enemies.push(mini); // hoặc bạn có thể push vào 1 mảng riêng miniBosses
+        }
+      }
         function update(){
           if(!gameRunning) return;
           updateStars();
@@ -252,27 +397,32 @@
             });
           });
           if(boss){
-            if(level===3) bullets.forEach(b=>{ if(Math.abs(b.y-boss.y)<100) boss.x += (b.x<boss.x?1:-1)*boss.speed; });
-            boss.x+=boss.dir*boss.speed;
-            if(boss.x<=0||boss.x+boss.w>=canvas.width) boss.dir*=-1;
-            let interval = level===1?1500:level===2?1000:700;
-            if(Date.now()-boss.lastEgg>interval){
-              let num = level===1?4:level===2?6:10;
-              for(let k=0;k<num;k++) eggs.push({x:boss.x+boss.w/2-8+(k*20-num*10),y:boss.y+boss.h,w:16,h:24,dy:5});
-              boss.lastEgg=Date.now();
-            }
-            bullets.forEach((b,j)=>{
-              if(b.x<boss.x+boss.w && b.x+b.w>boss.x && b.y<boss.y+boss.h && b.h+b.y>boss.y){
-                boss.hp-=player.damage; bullets.splice(j,1);
-                if(boss.hp<=0){ boss=null; wave=0; level++; if(level<=3){spawnEnemies(); wave++;} else { alert("🎉 Bạn đã thắng toàn bộ game! Điểm: "+score); backMenu(); } }
-              }
-            });
-          }
-          eggs.forEach((eg,i)=>{ eg.y+=eg.dy; if(eg.y>canvas.height) eggs.splice(i,1); if(eg.x<player.x+player.w && eg.x+eg.w>player.x && eg.y<player.y+player.h && eg.h+eg.y>player.y){ player.hp--; eggs.splice(i,1); if(player.hp<=0) gameOver(); } });
-          items.forEach((it,i)=>{ it.y+=3; if(it.y>canvas.height) items.splice(i,1); if(it.x<player.x+player.w && it.x+it.w>player.x && it.y<player.y+player.h && it.h+it.y>player.y){ if(it.type==="speed") player.speed+=1; else if(it.type==="dame") player.damage+=1; else if(it.type==="multishot") player.bulletLevel=Math.min(3,player.bulletLevel+1); else if(it.type==="heal") player.hp=Math.min(5,player.hp+1); items.splice(i,1); } });
-          if(enemies.length===0 && !boss){ wave++; if(wave>maxWaves[level-1]) spawnBoss(); else spawnEnemies(); }
-        }
+          boss.move(canvas);
+          boss.shoot(eggs);
 
+          // Check va chạm đạn player vs boss
+          bullets.forEach((b,j)=>{
+            if(b.x<boss.x+boss.w && b.x+b.w>boss.x && b.y<boss.y+boss.h && b.h+b.y>boss.y){
+              boss.hp-=player.damage; bullets.splice(j,1);
+              if(boss.hp<=0){
+                boss=null; wave=0; level++;
+                if(level<=3){spawnEnemies(); wave++;}
+                else { alert("🎉 Bạn đã thắng toàn bộ game! Điểm: "+score); backMenu(); }
+              }
+            }
+          });
+        }
+          eggs.forEach((eg,i)=>{
+        if(eg.vx!==undefined){ eg.x+=eg.vx; eg.y+=eg.vy; }
+        else { eg.y+=eg.dy; } // đạn gà thường
+        if(eg.y>canvas.height || eg.x<0 || eg.x>canvas.width) eggs.splice(i,1);
+
+        if(eg.x<player.x+player.w && eg.x+eg.w>player.x && eg.y<player.y+player.h && eg.h+eg.y>player.y){
+          player.hp--; eggs.splice(i,1);
+          if(player.hp<=0) gameOver();
+        }
+        });
+      }
         function drawBackground(){ let bg=bgImgs[Math.min(level-1,bgImgs.length-1)]; canvas.style.background=`url('${bg}') no-repeat center center`; canvas.style.backgroundSize="cover"; }
 
         function draw(){
@@ -286,65 +436,132 @@
           if(boss){ ctx.drawImage(bossImg,boss.x,boss.y,boss.w,boss.h); ctx.fillStyle="red"; ctx.fillRect(200,20,(boss.hp/boss.maxHp)*400,20); ctx.strokeStyle="white"; ctx.strokeRect(200,20,400,20); }
           ctx.fillStyle = "white"; 
           eggs.forEach(eg => ctx.fillRect(eg.x, eg.y, eg.w, eg.h));
-          // Item
-          items.forEach((it,i)=>{
-            it.y+=3; if(it.y>canvas.height) items.splice(i,1);
-            if(it.x<player.x+player.w && it.x+it.w>player.x && it.y<player.y+player.h && it.h+it.y>player.y){
-              if(it.type==="speed") player.speed+=1;
-              else if(it.type==="dame") player.damage+=1;
-              else if(it.type==="multishot") player.bulletLevel=Math.min(3,player.bulletLevel+1);
-              else if(it.type==="heal") player.hp=Math.min(5,player.hp+1);
-              items.splice(i,1);
-            }
-          });
-
-          // Qua màn
-          if(enemies.length===0 && !boss){
+            // === Kiểm tra qua màn ===
+          if(enemies.length === 0 && !boss){
             wave++;
-            if(wave>maxWaves[level-1]) spawnBoss();
-            else spawnEnemies();
-          }
-        }
-
+            if(wave > maxWaves[level-1]){
+              spawnBoss();
+            } else {
+              spawnEnemies();
+            }
+        } 
         function drawBackground() {
           let bg = bgImgs[Math.min(level-1,bgImgs.length-1)];
           canvas.style.background = `url('${bg}') no-repeat center center`;
           canvas.style.backgroundSize = "cover";
         }
+      // Vẽ player
+      ctx.drawImage(playerImg,player.x,player.y,player.w,player.h);
+      ctx.fillStyle="red"; 
+      bullets.forEach(b=>ctx.fillRect(b.x,b.y,b.w,b.h));
 
-        function draw() {
-          if(!gameRunning) return;
-          ctx.clearRect(0,0,canvas.width,canvas.height);
-          drawBackground();
-          drawStars();
+      // Vẽ enemies
+      enemies.forEach(en=>ctx.drawImage(enemyImg,en.x,en.y,en.w,en.h));
 
-          ctx.drawImage(playerImg,player.x,player.y,player.w,player.h);
-          ctx.fillStyle="red"; bullets.forEach(b=>ctx.fillRect(b.x,b.y,b.w,b.h));
-          enemies.forEach(en=>ctx.drawImage(enemyImg,en.x,en.y,en.w,en.h));
-          if(boss){ 
-            ctx.drawImage(bossImg,boss.x,boss.y,boss.w,boss.h); 
-            ctx.fillStyle="red"; ctx.fillRect(200,20,(boss.hp/boss.maxHp)*400,20); 
-            ctx.strokeStyle="white"; ctx.strokeRect(200,20,400,20); 
-          }
-          ctx.fillStyle="white"; eggs.forEach(eg=>ctx.fillRect(eg.x,eg.y,eg.w,eg.h));
-          items.forEach(it=>{ ctx.fillStyle=it.type==="speed"?"blue":it.type==="dame"?"yellow":it.type==="multishot"?"green":"pink"; ctx.fillRect(it.x,it.y,it.w,it.h); });
+      // Vẽ boss
+      if(boss){ 
+        ctx.drawImage(bossImg,boss.x,boss.y,boss.w,boss.h); 
+        ctx.fillStyle="red"; 
+        ctx.fillRect(200,20,(boss.hp/boss.maxHp)*400,20); 
+        ctx.strokeStyle="white"; ctx.strokeRect(200,20,400,20); 
+      }
 
-          // Thanh máu nhân vật
-          ctx.fillStyle="red";
-          ctx.fillRect(10, 120, player.hp*20, 20);
-          ctx.strokeStyle="white"; ctx.strokeRect(10,120,100,20);
+      // Vẽ eggs (đạn gà)
+      ctx.fillStyle="white"; 
+      eggs.forEach(eg=>ctx.fillRect(eg.x,eg.y,eg.w,eg.h));
 
-          ctx.fillStyle="white"; ctx.font="20px Arial";
-          ctx.fillText("Điểm: "+score,10,20);
-          ctx.fillText("Màn: "+level,10,45);
-          ctx.fillText("Đạn Lv: "+player.bulletLevel,10,70);
-          ctx.fillText("Dame: "+player.damage,10,95);
-
-          update();
-          requestAnimationFrame(draw);
+      // === Cập nhật items (rơi, va chạm, ăn) ===
+      for (let i = items.length-1; i >= 0; i--) {
+        let it = items[i];
+        it.y += 3;
+        if(it.y > canvas.height){ items.splice(i,1); continue; }
+        if(it.x < player.x+player.w && it.x+it.w > player.x &&
+          it.y < player.y+player.h && it.h+it.y > player.y){
+          if(it.type === "speed") player.speed += 1;
+          else if(it.type === "dame") player.damage += 1;
+          else if(it.type === "multishot") player.bulletLevel = Math.min(3, player.bulletLevel+1);
+          else if(it.type === "heal") player.hp = Math.min(5, player.hp+1);
+          items.splice(i,1);
         }
+      }
 
+      // === Vẽ items ===
+      items.forEach(it=>{
+        if(it.type === "heal"){ // hình trái tim
+          ctx.fillStyle = "red";
+          ctx.beginPath();
+          ctx.moveTo(it.x+it.w/2, it.y+it.h);
+          ctx.bezierCurveTo(it.x-it.w/2, it.y+it.h/2, it.x+it.w/4, it.y, it.x+it.w/2, it.y+it.h/4);
+          ctx.bezierCurveTo(it.x+it.w*3/4, it.y, it.x+it.w*1.5, it.y+it.h/2, it.x+it.w/2, it.y+it.h);
+          ctx.fill();
+        }
+        else if(it.type === "speed"){ // mũi tên xanh
+          ctx.fillStyle = "blue";
+          ctx.beginPath();
+          ctx.moveTo(it.x, it.y+it.h);
+          ctx.lineTo(it.x+it.w/2, it.y);
+          ctx.lineTo(it.x+it.w, it.y+it.h);
+          ctx.lineTo(it.x+it.w*3/4, it.y+it.h);
+          ctx.lineTo(it.x+it.w*3/4, it.y+it.h*1.5);
+          ctx.lineTo(it.x+it.w/4, it.y+it.h*1.5);
+          ctx.lineTo(it.x+it.w/4, it.y+it.h);
+          ctx.closePath();
+          ctx.fill();
+        }
+        else if(it.type === "dame"){ // bùng nổ vàng
+          ctx.fillStyle = "yellow";
+          ctx.beginPath();
+          for(let a=0;a<10;a++){
+            let angle = a * Math.PI/5;
+            let r = a%2===0 ? it.w/2 : it.w/4;
+            let px = it.x+it.w/2 + r*Math.cos(angle);
+            let py = it.y+it.h/2 + r*Math.sin(angle);
+            ctx.lineTo(px,py);
+          }
+          ctx.closePath();
+          ctx.fill();
+        }
+        else if(it.type === "multishot"){ // 3 viên đạn xanh lá
+          ctx.fillStyle = "green";
+          for(let j=0;j<3;j++){
+            ctx.beginPath();
+            ctx.arc(it.x+it.w/2, it.y+4+j*6, 3, 0, Math.PI*2);
+            ctx.fill();
+          }
+        }
+      });
+
+      // Thanh máu nhân vật
+      ctx.fillStyle="red";
+      ctx.fillRect(10, 120, player.hp*20, 20);
+      ctx.strokeStyle="white"; ctx.strokeRect(10,120,100,20);
+
+      // HUD
+      ctx.fillStyle="white"; ctx.font="20px Arial";
+      ctx.fillText("Điểm: "+score,10,20);
+      ctx.fillText("Màn: "+level,10,45);
+      ctx.fillText("Đạn Lv: "+player.bulletLevel,10,70);
+      ctx.fillText("Dame: "+player.damage,10,95);
+      // === Vẽ hiệu ứng nổ ===
+      for (let i = explosions.length - 1; i >= 0; i--) {
+        let particles = explosions[i];
+        for (let j = particles.length - 1; j >= 0; j--) {
+          let p = particles[j];
+          ctx.fillStyle = p.color;
+          ctx.fillRect(p.x, p.y, 3, 3);
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vx *= 0.95; // giảm tốc dần
+          p.vy *= 0.95;
+          p.life--;
+          if (p.life <= 0) particles.splice(j, 1);
+        }
+        if (particles.length === 0) explosions.splice(i, 1);
+      }
+      update();
+      requestAnimationFrame(draw);
+      }
         window.addEventListener("resize", resizeCanvas);
       </script>
     </body>
-    </html> tôi muốn thêm nền trang home nen.png 
+    </html> 
