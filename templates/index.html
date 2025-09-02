@@ -124,6 +124,7 @@
         let player, bullets, enemies, eggs, items, boss;
         let level, score, keys;
         let wave, maxWaves;
+        let bossDefeated = false; // global
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         let explosions = [];
 
@@ -285,9 +286,9 @@
         }
         function spawnBoss(){
   let bossSize = 150;
-  let bossHp = 40; // Boss màn 1
-  if(level === 2) bossHp = 150; // Boss màn 2
-  if(level === 3) bossHp = 300; // Boss màn 3
+  let bossHp = 50; // Boss màn 1
+  if(level === 2) bossHp = 100; // Boss màn 2
+  if(level === 3) bossHp = 150; // Boss màn 3
   boss = new Boss(canvas.width/2-bossSize/2, 50, level, bossHp);
 }
 
@@ -416,23 +417,28 @@ function spawnMiniBosses(parentBoss){
         ){
           boss.hp -= player.damage; // trừ máu boss
           bullets.splice(j,1);      // xóa viên đạn
+          
           addExplosion(b.x+b.w/2, b.y+b.h/2,"orange"); // nổ hiệu ứng
-          if(boss.hp <= 0){
-            boss = null;
-            wave = 0;
-            if(level === 1){
-              alert("🎉 Bạn đã thắng màn 1! Nhấn OK để đến màn 2");
-              level = 2;
-              spawnEnemies();
-            } else if(level === 2){
-              alert("🎉 Bạn đã thắng màn 2! Nhấn OK để đến màn 3");
-              level = 3;
-              spawnEnemies();
-            } else if(level === 3){
-              alert("🏆 Chúc mừng! Bạn đã hoàn thành trò chơi! Điểm cuối: " + score);
-              backMenu();
-            }
-          }
+          if(boss && boss.hp <= 0){
+    boss = null;
+    bossDefeated = true;
+    wave = 0;
+
+    setTimeout(()=>{
+        if(level === 1){
+            alert("🎉 Bạn đã thắng màn 1! Nhấn OK để đến màn 2");
+            level = 2;
+        } else if(level === 2){
+            alert("🎉 Bạn đã thắng màn 2! Nhấn OK để đến màn 3");
+            level = 3;
+        } else if(level === 3){
+            alert("🏆 Chúc mừng! Bạn đã hoàn thành trò chơi! Điểm cuối: " + score);
+            backMenu();
+        }
+        bossDefeated = false;
+                spawnEnemies(); // spawn enemies mới cho màn tiếp theo
+            }, 100); // delay nhỏ để alert hiện xong
+        }
         }
       });
         }
@@ -481,14 +487,21 @@ function spawnMiniBosses(parentBoss){
           ctx.fillStyle = "white"; 
           eggs.forEach(eg => ctx.fillRect(eg.x, eg.y, eg.w, eg.h));
             // === Kiểm tra qua màn ===
-          if(enemies.length === 0 && !boss){
-            wave++;
-            if(wave > maxWaves[level-1]){
-              spawnBoss();
-            } else {
-              spawnEnemies();
-            }
-        } 
+          // Trong draw() hoặc update():
+          if(enemies.length === 0 && !boss && !bossDefeated){
+              wave++;
+              if(wave > maxWaves[level-1]){
+                  spawnBoss();
+              } else {
+                  spawnEnemies();
+              }
+          }
+
+          // Khi chuyển màn xong, reset bossDefeated
+          if(bossDefeated){
+              spawnEnemies(); // spawn enemies cho màn mới
+              bossDefeated = false;
+          }
         function drawBackground() {
           let bg = bgImgs[Math.min(level-1,bgImgs.length-1)];
           canvas.style.background = `url('${bg}') no-repeat center center`;
