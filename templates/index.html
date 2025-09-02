@@ -69,13 +69,14 @@
       <div id="guide" style="display:none;">
       <h2>📖 Hướng Dẫn</h2>
       <p><b>Điều khiển:</b> Chuột để di chuyển (PC), trên mobile dùng nút tròn bên phải</p>
-      <p><b>Màu <span style="color:red;">Đỏ</span>:</b> Đạn của bạn</p>
+      <p><b>Màu <span style="color:rgb(0, 0, 0);">Đen</span>:</b> Đạn của bạn</p>
       <p><b>Màu <span style="color:white;">Trắng</span>:</b> Đạn của địch</p>
       <p><b>Item:</b></p>
       <p><b style="color:rgb(4, 4, 63);">Xanh:</b> Speed (tăng tốc độ)</p>
       <p><b style="color:yellow;">Vàng:</b> Dame (tăng sát thương)</p>
       <p><b style="color:green;">Xanh lá:</b> Đạn (thêm 1 đường đạn)</p>
       <p><b style="color:pink;">Hồng:</b> Hồi 1 máu</p>
+      <p><b style="color:red;">Đỏ:</b> FireRate (tăng tốc độ bắn)</p>
       <button onclick="backMenu()">Quay lại</button>
     </div>
       <!-- Liên hệ -->
@@ -281,9 +282,11 @@
           for(let i=0;i<numEnemies;i++) enemies.push({ x:50+i*(canvas.width-100)/numEnemies, y:50, w:64, h:64, speed:2+level*0.5, dir:1, lastEgg:Date.now() });
         }
         function spawnBoss(){
-  let bossSize=150;
-  let bossHp=level===1?150:level===2?300:500;
-  boss=new Boss(canvas.width/2-bossSize/2,50,level,bossHp);
+  let bossSize = 150;
+  let bossHp = 40; // Boss màn 1
+  if(level === 2) bossHp = 60; // Boss màn 2
+  if(level === 3) bossHp = 100; // Boss màn 3
+  boss = new Boss(canvas.width/2-bossSize/2, 50, level, bossHp);
 }
 
 // ==== DÁN PHẦN NÀY VÀO ĐÂY ==== 
@@ -385,14 +388,15 @@ function spawnMiniBosses(parentBoss){
             bullets.forEach((b,j)=>{
               if(b.x<en.x+en.w && b.x+b.w>en.x && b.y<en.y+en.h && b.h+b.y>en.y){
                 enemies.splice(i,1); bullets.splice(j,1); score+=10;
-                if(Math.random()<0.3){
-                  let typeRand=Math.random(), type="speed";
-                  if(typeRand<0.25) type="speed";
-                  else if(typeRand<0.5) type="dame";
-                  else if(typeRand<0.75) type="multishot";
-                  else type="heal";
-                  items.push({x:en.x,y:en.y,w:20,h:20,type});
-                }
+              if(Math.random()<0.3){
+              let typeRand=Math.random(), type="speed";
+              if(typeRand<0.2) type="speed";
+              else if(typeRand<0.4) type="dame";
+              else if(typeRand<0.6) type="multishot";
+              else if(typeRand<0.8) type="heal";
+              else type="fireRateBoost"; // thêm item tăng tốc độ bắn
+              items.push({x:en.x,y:en.y,w:20,h:20,type});
+            }
               }
             });
           });
@@ -413,15 +417,25 @@ function spawnMiniBosses(parentBoss){
           });
         }
           eggs.forEach((eg,i)=>{
-        if(eg.vx!==undefined){ eg.x+=eg.vx; eg.y+=eg.vy; }
-        else { eg.y+=eg.dy; } // đạn gà thường
-        if(eg.y>canvas.height || eg.x<0 || eg.x>canvas.width) eggs.splice(i,1);
+    if(eg.vx!==undefined){ eg.x+=eg.vx; eg.y+=eg.vy; } // đạn boss
+    else { eg.y+=eg.dy; } // đạn gà thường
 
-        if(eg.x<player.x+player.w && eg.x+eg.w>player.x && eg.y<player.y+player.h && eg.h+eg.y>player.y){
-          player.hp--; eggs.splice(i,1);
-          if(player.hp<=0) gameOver();
-        }
-        });
+    if(eg.y>canvas.height || eg.x<0 || eg.x>canvas.width) eggs.splice(i,1);
+
+    // Hitbox nhỏ hơn kích thước đạn
+    const hitSize = 2; // phạm vi trúng thực sự
+    const hitX = eg.x + (eg.w - hitSize)/2;
+    const hitY = eg.y + (eg.h - hitSize)/2;
+
+    if(hitX < player.x + player.w &&
+       hitX + hitSize > player.x &&
+       hitY < player.y + player.h &&
+       hitY + hitSize > player.y){
+        player.hp--;
+        eggs.splice(i,1);
+        if(player.hp<=0) gameOver();
+    }
+    });
       }
         function drawBackground(){ let bg=bgImgs[Math.min(level-1,bgImgs.length-1)]; canvas.style.background=`url('${bg}') no-repeat center center`; canvas.style.backgroundSize="cover"; }
 
@@ -481,6 +495,7 @@ function spawnMiniBosses(parentBoss){
           else if(it.type === "dame") player.damage += 1;
           else if(it.type === "multishot") player.bulletLevel = Math.min(3, player.bulletLevel+1);
           else if(it.type === "heal") player.hp = Math.min(5, player.hp+1);
+          else if(it.type === "fireRateBoost") player.fireRate = Math.max(50, player.fireRate - 100);
           items.splice(i,1);
         }
       }
@@ -508,6 +523,15 @@ function spawnMiniBosses(parentBoss){
           ctx.closePath();
           ctx.fill();
         }
+        else if(it.type === "fireRateBoost"){ // mũi tên đỏ
+        ctx.fillStyle = "red";
+        ctx.beginPath();
+        ctx.moveTo(it.x, it.y+it.h);
+        ctx.lineTo(it.x+it.w/2, it.y);
+        ctx.lineTo(it.x+it.w, it.y+it.h);
+        ctx.closePath();
+        ctx.fill();
+}
         else if(it.type === "dame"){ // bùng nổ vàng
           ctx.fillStyle = "yellow";
           ctx.beginPath();
