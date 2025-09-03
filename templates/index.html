@@ -33,19 +33,21 @@
           display: block;
           border: 2px solid white;
         }
-        #menu, #guide, #gameOver, #contact {
-          position: absolute;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background: url('static/nen.png') no-repeat center center;
-          background-size: cover;
-          color: white;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          text-align: center;
-          z-index: 10;
-        }
+        #menu, #guide, #gameOver, #contact, #win, #leaderboard {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: url('static/nen.png') no-repeat center center;
+        background-size: cover;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        z-index: 2000; /* tăng để đè mọi thứ */
+      }
+        #leaderboard { z-index: 2001; } /* nếu cần chồng lên khi mở BXH */
+
         button {
           margin: 10px;
           padding: 10px 20px;
@@ -316,7 +318,19 @@
       // Lưu lại top 10 để đồng bộ localStorage
       localStorage.setItem("leaderboard", JSON.stringify(scores));
   }
-
+      function saveScore() {
+        try {
+          const name = (player && player.name) ? player.name : "Người chơi";
+          let scores = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+          scores.push({ name, score, level });
+          // sắp xếp: điểm ↓ rồi level ↓
+          scores.sort((a,b) => b.score - a.score || b.level - a.level);
+          scores = scores.slice(0,10);
+          localStorage.setItem("leaderboard", JSON.stringify(scores));
+        } catch (e) {
+          console.warn("saveScore error:", e);
+        }
+      }   
       // Cập nhật gameOver để lưu điểm
       function gameOver(){ 
         gameRunning = false; 
