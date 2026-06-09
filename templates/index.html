@@ -610,10 +610,10 @@ function spawnMiniBosses(parentBoss){
                 enemies.splice(i,1); bullets.splice(j,1); score+=10;
               if(Math.random()<0.7){
               let typeRand=Math.random(), type="speed";
-              if(typeRand<0.2) type="speed";
-              else if(typeRand<0.5) type="dame";
-              else if(typeRand<0.6) type="multishot";
-              else if(typeRand<0.4) type="heal";
+              if(typeRand<0.25) type="speed";
+              else if(typeRand<0.50) type="dame";
+              else if(typeRand<0.75) type="multishot";
+              else type="heal";
 
               items.push({x:en.x,y:en.y,w:20,h:20,type});
             }
@@ -655,7 +655,7 @@ function spawnMiniBosses(parentBoss){
   document.getElementById("homeBtn").style.display = "none";
    return;
 }
-   bossDefeaated = true;
+   bossDefeated = true;
 }
               }   });
         }
