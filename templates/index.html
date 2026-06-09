@@ -223,7 +223,7 @@
         function initStars(num=100){
           stars = [];
           for(let i=0;i<num;i++){
-            stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, size: Math.random()*2+1, dy: Math.random()*1+});
+            stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, size: Math.random()*2+1, dy: Math.random()*1+0.2});
           }
         }
         function updateStars(){ stars.forEach(s=>{ s.y += s.dy; if(s.y > canvas.height) s.y = 0; }); }
@@ -388,7 +388,7 @@
         break;
 
       case 3:
-        angles = [-, 0, ];
+        angles = [-0.2, 0, 0.2];
         break;
 
       case 4:
@@ -396,7 +396,7 @@
         break;
 
       default: // Lv5 trở lên
-        angles = [-0.4, -, 0, , 0.4];
+        angles = [-0.4, -0.2, 0, 0.2, 0.4];
         break;
     }
 
@@ -433,7 +433,7 @@
         touchControl.style.width = "160px";   // tăng kích thước
         touchControl.style.height = "160px";
         touchControl.style.borderRadius = "50%";
-        touchControl.style.background = "rgba(255,255,255,5)"; 
+        touchControl.style.background = "rgba(255,255,255,0.25)"; 
         touchControl.style.zIndex = "100";
         touchControl.style.display = "flex";
         touchControl.style.justifyContent = "center";
@@ -481,8 +481,8 @@
         }
         function spawnBoss(){
   let bossSize = 150;
-  let bossHp = 400; // Boss màn 1
-  if(level === 2) bossHp = 800; // Boss màn 2
+  let bossHp = 500; // Boss màn 1
+  if(level === 2) bossHp = 1000; // Boss màn 2
   if(level === 3) bossHp = 2000; // Boss màn 3
   boss = new Boss(canvas.width/2-bossSize/2, 50, level, bossHp);
 }
@@ -502,7 +502,7 @@
     if(this.x<=0||this.x+this.w>=canvas.width) this.dir*=-1;
 
     // Boss 2 & 3 có teleport ngẫu nhiên
-    if(this.type === 2 && Math.random() < 0.01){
+    if(this.type === 2 && Math.random() < 0.02){
     this.teleport(canvas);
   }
   
@@ -612,7 +612,7 @@ function spawnMiniBosses(parentBoss){
 
           wave++;
           waitingForNextWave = false;
-      }, 200);
+      }, 1000);
   }
         }
 
