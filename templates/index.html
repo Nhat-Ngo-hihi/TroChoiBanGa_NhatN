@@ -345,7 +345,19 @@
           gameWon = false;
           bossDefeated = false;
           waitingForNextWave = false;
-          player={ x: canvas.width/2-32, y: canvas.height-100, w:64, h:64, speed:6, fireRate:600, lastShot:0, bulletLevel:1, damage:1, hp:8 };
+          player={
+           x: canvas.width/2-32,
+           y: canvas.height-100,
+           w:64,
+           h:64,
+           speed:6,
+           fireRate:300,
+           lastShot:0,
+           bulletLevel:1,
+           damage:1,
+           hp:8,
+           maxHp:8
+         };
           bullets=[]; enemies=[]; eggs=[]; items=[]; boss=null;
           level=1; wave=1; score=0; keys={};
           maxWaves=[3,5,10]; spawnEnemies(); initStars();
@@ -353,7 +365,7 @@
         document.addEventListener("keydown", e=>keys[e.key]=true);
         document.addEventListener("keyup", e=>keys[e.key]=false);
 
-        function startAutoShoot(){ autoShootInterval=setInterval(shoot,300); }
+        function startAutoShoot(){ autoShootInterval=setInterval(shoot,250); }
         function stopAutoShoot(){ clearInterval(autoShootInterval); }
 
         function shoot(){
@@ -745,7 +757,7 @@ function spawnMiniBosses(parentBoss){
           if(it.type === "speed") player.speed += 1;
           else if(it.type === "dame") player.damage += 1;
           else if(it.type === "multishot") player.bulletLevel = Math.min(5, player.bulletLevel+1);
-          else if(it.type === "heal") player.hp = Math.min(5, player.hp+1);
+          else if(it.type === "heal") player.hp = Math.min(player.maxHp, player.hp+1);
 
           items.splice(i,1);
         }
@@ -798,10 +810,34 @@ function spawnMiniBosses(parentBoss){
         }
       });
 
-      // Thanh máu nhân vật
-      ctx.fillStyle="red";
-      ctx.fillRect(10, 120, player.hp*20, 20);
-      ctx.strokeStyle="white"; ctx.strokeRect(10,120,100,20);
+            // Thanh máu nhân vật
+            // Thanh máu 8 khúc
+      const barX = 10;
+      const barY = 120;
+      const segmentWidth = 14;
+      const segmentHeight = 20;
+      const gap = 2;
+      
+      for(let i = 0; i < player.maxHp; i++){
+      
+        ctx.strokeStyle = "white";
+        ctx.strokeRect(
+          barX + i * (segmentWidth + gap),
+          barY,
+          segmentWidth,
+          segmentHeight
+        );
+      
+        if(i < player.hp){
+          ctx.fillStyle = "red";
+          ctx.fillRect(
+            barX + i * (segmentWidth + gap),
+            barY,
+            segmentWidth,
+            segmentHeight
+          );
+        }
+      }
 
       // HUD
       ctx.fillStyle="white"; ctx.font="20px Arial";
