@@ -579,28 +579,76 @@ function spawnMiniBosses(parentBoss){
         }
       }
             function checkWaveProgress() {
-      if(enemies.length > 0 || boss) return;
 
-      if(!waitingForNextWave){
-          waitingForNextWave = true;
-          setTimeout(() => {
-              if(wave > maxWaves[level-1]){
-                  spawnBoss();
-              } else {
-                  spawnEnemies();
-              }
-              wave++;
-              waitingForNextWave = false;
-          }, 200); // tăng delay một chút để Vercel load mượt
+  // Boss vừa chết => sang màn mới luôn
+  if(bossDefeated){
+      level++;
+
+      if(level > 3){
+          return;
       }
 
-      if(bossDefeated && enemies.length === 0){
-          level++;
-          wave = 1;
-          bossDefeated = false;
-          spawnEnemies();
-      }
+      wave = 1;
+      bossDefeated = false;
+      enemies = [];
+      boss = null;
+
+      spawnEnemies();
+      return;
   }
+
+  if(enemies.length > 0 || boss) return;
+
+  if(!waitingForNextWave){
+      waitingForNextWave = true;
+
+      setTimeout(() => {
+          if(wave > maxWaves[level-1]){
+              spawnBoss();
+          } else {
+              spawnEnemies();
+          }
+
+          wave++;
+          waitingForNextWave = false;
+      }, 200);
+  }
+        }function checkWaveProgress() {
+        
+          // Boss vừa chết => sang màn mới luôn
+          if(bossDefeated){
+              level++;
+        
+              if(level > 3){
+                  return;
+              }
+        
+              wave = 1;
+              bossDefeated = false;
+              enemies = [];
+              boss = null;
+        
+              spawnEnemies();
+              return;
+          }
+        
+          if(enemies.length > 0 || boss) return;
+        
+          if(!waitingForNextWave){
+              waitingForNextWave = true;
+        
+              setTimeout(() => {
+                  if(wave > maxWaves[level-1]){
+                      spawnBoss();
+                  } else {
+                      spawnEnemies();
+                  }
+        
+                  wave++;
+                  waitingForNextWave = false;
+              }, 200);
+          }
+        }
 
         function update(){
           if(!gameRunning) return;
