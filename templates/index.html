@@ -122,7 +122,7 @@
       </div>
       <!-- Win -->
       <div id="win" style="display:none;">
-        <h1>💀 chúc mừng bạn đã chiến thắng 💀</h1>
+        <h1>🎉 chúc mừng bạn đã chiến thắng 🎉</h1>
         <p id="finalScoreWin"></p>
         <button onclick="restartGame()">Chơi lại</button>
         <button onclick="backMenu()">Về Menu</button>
@@ -133,7 +133,12 @@
     <ol id="scoreList" style="font-size:20px; text-align:center; margin-top:20px;"></ol>
     <button onclick="backMenu()" style="margin-top:20px;">Quay lại</button>
   </div>
-      <canvas id="gameCanvas"></canvas>
+      
+<div id="levelTransition" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;color:#fff;justify-content:center;align-items:center;flex-direction:column;font-size:72px;">
+  <div id="transitionText">MÀN HOÀN THÀNH</div>
+</div>
+
+<canvas id="gameCanvas"></canvas>
       <button id="homeBtn" onclick="backMenu()" style="display:none;">🏠 Home</button>
 
       <script>
@@ -200,7 +205,7 @@
         let bossDefeated = false; // global
         let waitingForNextWave = false; // chặn spawn liên tục
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        let explosions = [];
+        let explosions = [];\nlet isTransitioning = false;
 
         function addExplosion(x, y, color="orange") {
           let particles = [];
@@ -345,7 +350,19 @@
           gameWon = false;
           bossDefeated = false;
           waitingForNextWave = false;
-          player={ x: canvas.width/2-32, y: canvas.height-100, w:64, h:64, speed:6, fireRate:600, lastShot:0, bulletLevel:1, damage:1, hp:5 };
+          player={
+           x: canvas.width/2-32,
+           y: canvas.height-100,
+           w:64,
+           h:64,
+           speed:6,
+           fireRate:300,
+           lastShot:0,
+           bulletLevel:1,
+           damage:1,
+           hp:8,
+           maxHp:8
+         };
           bullets=[]; enemies=[]; eggs=[]; items=[]; boss=null;
           level=1; wave=1; score=0; keys={};
           maxWaves=[3,5,10]; spawnEnemies(); initStars();
@@ -353,7 +370,7 @@
         document.addEventListener("keydown", e=>keys[e.key]=true);
         document.addEventListener("keyup", e=>keys[e.key]=false);
 
-        function startAutoShoot(){ autoShootInterval=setInterval(shoot,200); }
+        function startAutoShoot(){ autoShootInterval=setInterval(shoot,250); }
         function stopAutoShoot(){ clearInterval(autoShootInterval); }
 
         function shoot(){
@@ -468,9 +485,9 @@
         }
         function spawnBoss(){
   let bossSize = 150;
-  let bossHp = 50; // Boss màn 1
-  if(level === 2) bossHp = 150; // Boss màn 2
-  if(level === 3) bossHp = 300; // Boss màn 3
+  let bossHp = 500; // Boss màn 1
+  if(level === 2) bossHp = 1000; // Boss màn 2
+  if(level === 3) bossHp = 2000; // Boss màn 3
   boss = new Boss(canvas.width/2-bossSize/2, 50, level, bossHp);
 }
 
@@ -489,9 +506,13 @@
     if(this.x<=0||this.x+this.w>=canvas.width) this.dir*=-1;
 
     // Boss 2 & 3 có teleport ngẫu nhiên
-    if(this.type>=2 && Math.random()<0.01){
-      this.teleport(canvas);
-    }
+    if(this.type === 2 && Math.random() < 0.03){
+    this.teleport(canvas);
+  }
+  
+  if(this.type === 3 && Math.random() < 0.05){
+    this.teleport(canvas);
+  }
   }
 
   teleport(canvas){
@@ -501,7 +522,7 @@
 
   shoot(bullets){
     this.shootTimer++;
-    let interval = this.type===1 ? 70 : this.type===2 ? 30 : 50;
+    let interval = this.type===1 ? 70 : this.type===2 ? 50 : 30;
     if(this.shootTimer > interval){
       this.shootTimer = 0;
 
@@ -563,28 +584,76 @@ function spawnMiniBosses(parentBoss){
         }
       }
             function checkWaveProgress() {
-      if(enemies.length > 0 || boss) return;
 
-      if(!waitingForNextWave){
-          waitingForNextWave = true;
-          setTimeout(() => {
-              if(wave > maxWaves[level-1]){
-                  spawnBoss();
-              } else {
-                  spawnEnemies();
-              }
-              wave++;
-              waitingForNextWave = false;
-          }, 200); // tăng delay một chút để Vercel load mượt
+  // Boss vừa chết => sang màn mới luôn
+  if(bossDefeated){
+      level++;
+
+      if(level > 3){
+          return;
       }
 
-      if(bossDefeated && enemies.length === 0){
-          level++;
-          wave = 1;
-          bossDefeated = false;
-          spawnEnemies();
-      }
+      wave = 1;
+      bossDefeated = false;
+      enemies = [];
+      boss = null;
+
+      spawnEnemies();
+      return;
   }
+
+  if(enemies.length > 0 || boss) return;
+
+  if(!waitingForNextWave){
+      waitingForNextWave = true;
+
+      setTimeout(() => {
+          if(wave > maxWaves[level-1]){
+              spawnBoss();
+          } else {
+              spawnEnemies();
+          }
+
+          wave++;
+          waitingForNextWave = false;
+      }, 200);
+  }
+        }function checkWaveProgress() {
+        
+          // Boss vừa chết => sang màn mới luôn
+          if(bossDefeated){ showLevelTransition(level+1); return; /* patched */
+              level++;
+        
+              if(level > 3){
+                  return;
+              }
+        
+              wave = 1;
+              bossDefeated = false;
+              enemies = [];
+              boss = null;
+        
+              spawnEnemies();
+              return;
+          }
+        
+          if(enemies.length > 0 || boss) return;
+        
+          if(!waitingForNextWave){
+              waitingForNextWave = true;
+        
+              setTimeout(() => {
+                  if(wave > maxWaves[level-1]){
+                      spawnBoss();
+                  } else {
+                      spawnEnemies();
+                  }
+        
+                  wave++;
+                  waitingForNextWave = false;
+              }, 200);
+          }
+        }
 
         function update(){
           if(!gameRunning) return;
@@ -610,7 +679,7 @@ function spawnMiniBosses(parentBoss){
                 enemies.splice(i,1); bullets.splice(j,1); score+=10;
               if(Math.random()<0.7){
               let typeRand=Math.random(), type="speed";
-              if(typeRand<0.25) type="speed";
+              if(typeRand<0.10) type="speed";
               else if(typeRand<0.50) type="dame";
               else if(typeRand<0.75) type="multishot";
               else type="heal";
@@ -694,7 +763,39 @@ function spawnMiniBosses(parentBoss){
       }
         function drawBackground(){ let bg=bgImgs[Math.min(level-1,bgImgs.length-1)]; canvas.style.background=`url('${bg}') no-repeat center center`; canvas.style.backgroundSize="cover"; }
 
-        function draw(){
+        
+function showLevelTransition(nextLevel){
+  if(isTransitioning) return;
+  isTransitioning = true;
+
+  const box = document.getElementById("levelTransition");
+  const txt = document.getElementById("transitionText");
+
+  let count = 3;
+  box.style.display = "flex";
+  txt.textContent = "Màn " + (nextLevel-1) + " Hoàn Thành";
+
+  setTimeout(()=>{
+    const timer = setInterval(()=>{
+      txt.textContent = count;
+      count--;
+      if(count < 0){
+        clearInterval(timer);
+        box.style.display = "none";
+        isTransitioning = false;
+
+        level = nextLevel;
+        wave = 1;
+        bossDefeated = false;
+        enemies = [];
+        boss = null;
+        spawnEnemies();
+      }
+    },1000);
+  },1000);
+}
+
+function draw(){
           if(!gameRunning) return;
           ctx.clearRect(0,0,canvas.width,canvas.height);
           drawBackground();
@@ -745,7 +846,7 @@ function spawnMiniBosses(parentBoss){
           if(it.type === "speed") player.speed += 1;
           else if(it.type === "dame") player.damage += 1;
           else if(it.type === "multishot") player.bulletLevel = Math.min(5, player.bulletLevel+1);
-          else if(it.type === "heal") player.hp = Math.min(5, player.hp+1);
+          else if(it.type === "heal") player.hp = Math.min(player.maxHp, player.hp+1);
 
           items.splice(i,1);
         }
@@ -798,10 +899,34 @@ function spawnMiniBosses(parentBoss){
         }
       });
 
-      // Thanh máu nhân vật
-      ctx.fillStyle="red";
-      ctx.fillRect(10, 120, player.hp*20, 20);
-      ctx.strokeStyle="white"; ctx.strokeRect(10,120,100,20);
+            // Thanh máu nhân vật
+            // Thanh máu 8 khúc
+      const barX = 10;
+      const barY = 120;
+      const segmentWidth = 14;
+      const segmentHeight = 20;
+      const gap = 2;
+      
+      for(let i = 0; i < player.maxHp; i++){
+      
+        ctx.strokeStyle = "white";
+        ctx.strokeRect(
+          barX + i * (segmentWidth + gap),
+          barY,
+          segmentWidth,
+          segmentHeight
+        );
+      
+        if(i < player.hp){
+          ctx.fillStyle = "red";
+          ctx.fillRect(
+            barX + i * (segmentWidth + gap),
+            barY,
+            segmentWidth,
+            segmentHeight
+          );
+        }
+      }
 
       // HUD
       ctx.fillStyle="white"; ctx.font="20px Arial";
