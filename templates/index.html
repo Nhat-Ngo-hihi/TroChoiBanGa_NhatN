@@ -133,12 +133,7 @@
     <ol id="scoreList" style="font-size:20px; text-align:center; margin-top:20px;"></ol>
     <button onclick="backMenu()" style="margin-top:20px;">Quay lại</button>
   </div>
-      
-<div id="levelTransition" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;color:#fff;justify-content:center;align-items:center;flex-direction:column;font-size:72px;">
-  <div id="transitionText">MÀN HOÀN THÀNH</div>
-</div>
-
-<canvas id="gameCanvas"></canvas>
+      <canvas id="gameCanvas"></canvas>
       <button id="homeBtn" onclick="backMenu()" style="display:none;">🏠 Home</button>
 
       <script>
@@ -205,7 +200,7 @@
         let bossDefeated = false; // global
         let waitingForNextWave = false; // chặn spawn liên tục
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        let explosions = [];\nlet isTransitioning = false;
+        let explosions = [];
 
         function addExplosion(x, y, color="orange") {
           let particles = [];
@@ -621,7 +616,7 @@ function spawnMiniBosses(parentBoss){
         }function checkWaveProgress() {
         
           // Boss vừa chết => sang màn mới luôn
-          if(bossDefeated){ showLevelTransition(level+1); return; /* patched */
+          if(bossDefeated){
               level++;
         
               if(level > 3){
@@ -763,39 +758,7 @@ function spawnMiniBosses(parentBoss){
       }
         function drawBackground(){ let bg=bgImgs[Math.min(level-1,bgImgs.length-1)]; canvas.style.background=`url('${bg}') no-repeat center center`; canvas.style.backgroundSize="cover"; }
 
-        
-function showLevelTransition(nextLevel){
-  if(isTransitioning) return;
-  isTransitioning = true;
-
-  const box = document.getElementById("levelTransition");
-  const txt = document.getElementById("transitionText");
-
-  let count = 3;
-  box.style.display = "flex";
-  txt.textContent = "Màn " + (nextLevel-1) + " Hoàn Thành";
-
-  setTimeout(()=>{
-    const timer = setInterval(()=>{
-      txt.textContent = count;
-      count--;
-      if(count < 0){
-        clearInterval(timer);
-        box.style.display = "none";
-        isTransitioning = false;
-
-        level = nextLevel;
-        wave = 1;
-        bossDefeated = false;
-        enemies = [];
-        boss = null;
-        spawnEnemies();
-      }
-    },1000);
-  },1000);
-}
-
-function draw(){
+        function draw(){
           if(!gameRunning) return;
           ctx.clearRect(0,0,canvas.width,canvas.height);
           drawBackground();
