@@ -481,8 +481,8 @@
         function spawnBoss(){
   let bossSize = 150;
   let bossHp = 500; // Boss màn 1
-  if(level === 2) bossHp = 1500; // Boss màn 2
-  if(level === 3) bossHp = 3000; // Boss màn 3
+  if(level === 2) bossHp = 1000; // Boss màn 2
+  if(level === 3) bossHp = 2000; // Boss màn 3
   boss = new Boss(canvas.width/2-bossSize/2, 50, level, bossHp);
 }
 
@@ -501,9 +501,13 @@
     if(this.x<=0||this.x+this.w>=canvas.width) this.dir*=-1;
 
     // Boss 2 & 3 có teleport ngẫu nhiên
-    if(this.type>=2 && Math.random()<0.01){
-      this.teleport(canvas);
-    }
+    if(this.type === 2 && Math.random() < 0.03){
+    this.teleport(canvas);
+  }
+  
+  if(this.type === 3 && Math.random() < 0.05){
+    this.teleport(canvas);
+  }
   }
 
   teleport(canvas){
