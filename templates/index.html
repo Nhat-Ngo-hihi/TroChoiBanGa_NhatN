@@ -345,7 +345,7 @@
           gameWon = false;
           bossDefeated = false;
           waitingForNextWave = false;
-          player={ x: canvas.width/2-32, y: canvas.height-100, w:64, h:64, speed:6, fireRate:600, lastShot:0, bulletLevel:1, damage:1, hp:5 };
+          player={ x: canvas.width/2-32, y: canvas.height-100, w:64, h:64, speed:6, fireRate:600, lastShot:0, bulletLevel:1, damage:1, hp:8 };
           bullets=[]; enemies=[]; eggs=[]; items=[]; boss=null;
           level=1; wave=1; score=0; keys={};
           maxWaves=[3,5,10]; spawnEnemies(); initStars();
@@ -353,7 +353,7 @@
         document.addEventListener("keydown", e=>keys[e.key]=true);
         document.addEventListener("keyup", e=>keys[e.key]=false);
 
-        function startAutoShoot(){ autoShootInterval=setInterval(shoot,200); }
+        function startAutoShoot(){ autoShootInterval=setInterval(shoot,300); }
         function stopAutoShoot(){ clearInterval(autoShootInterval); }
 
         function shoot(){
@@ -610,7 +610,7 @@ function spawnMiniBosses(parentBoss){
                 enemies.splice(i,1); bullets.splice(j,1); score+=10;
               if(Math.random()<0.7){
               let typeRand=Math.random(), type="speed";
-              if(typeRand<0.25) type="speed";
+              if(typeRand<0.10) type="speed";
               else if(typeRand<0.50) type="dame";
               else if(typeRand<0.75) type="multishot";
               else type="heal";
