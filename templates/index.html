@@ -199,6 +199,7 @@
         let wave, maxWaves;
         let bossDefeated = false; // global
         let waitingForNextWave = false; // chặn spawn liên tục
+        let levelTransition = false;
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         let explosions = [];
 
@@ -704,9 +705,13 @@ function spawnMiniBosses(parentBoss){
   score += 500;
   let bx = boss.x + boss.w/2;
   let by = boss.y + boss.h/2;
-  boss = null; 
-  bossDefeated = true;
+  boss = null;
   addExplosion(bx, by, "yellow");
+  levelTransition = true;
+  setTimeout(()=>{
+      bossDefeated = true;
+      levelTransition = false;
+  }, 3000);
 
   // Nếu là boss màn 3 thì WIN
   if(level === 3){
