@@ -494,7 +494,7 @@
   let bossSize = 150;
   let bossHp = 500; // Boss màn 1
   if(level === 2) bossHp = 1000; // Boss màn 2
-  if(level === 3) bossHp = 2000; // Boss màn 3
+  if(level === 3) bossHp = 2500; // Boss màn 3
   boss = new Boss(canvas.width/2-bossSize/2, 50, level, bossHp);
 }
 
@@ -517,7 +517,7 @@
     this.teleport(canvas);
   }
   
-  if(this.type === 3 && Math.random() < 0.02){
+  if(this.type === 3 && Math.random() < 0.03){
     this.teleport(canvas);
   }
   }
@@ -529,7 +529,7 @@
 
   shoot(bullets){
     this.shootTimer++;
-    let interval = this.type===1 ? 70 : this.type===2 ? 50 : 50;
+    let interval = this.type===1 ? 70 : this.type===2 ? 50 : 30;
     if(this.shootTimer > interval){
       this.shootTimer = 0;
 
