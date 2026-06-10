@@ -371,8 +371,8 @@
            maxHp:8
          };
           bullets=[]; enemies=[]; eggs=[]; items=[]; boss=null;
-          level=1; wave=1; score=0; keys={};
-          maxWaves=[3,5,10]; spawnEnemies(); initStars();
+          level=3; wave=999; score=0; keys={};
+          maxWaves=[0,0,0]; spawnBoss(); initStars();
         }
         document.addEventListener("keydown", e=>keys[e.key]=true);
         document.addEventListener("keyup", e=>keys[e.key]=false);
