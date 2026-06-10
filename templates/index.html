@@ -529,7 +529,7 @@
 
   shoot(bullets){
     this.shootTimer++;
-    let interval = this.type===1 ? 70 : this.type===2 ? 50 : 20;
+    let interval = this.type===1 ? 70 : this.type===2 ? 50 : 40;
     if(this.shootTimer > interval){
       this.shootTimer = 0;
 
@@ -594,7 +594,8 @@ function spawnMiniBosses(parentBoss){
 
   // Boss vừa chết => sang màn mới luôn
   if(bossDefeated){
-      level++;
+      // level disabled
+      level=3;
 
       if(level > 3){
           return;
